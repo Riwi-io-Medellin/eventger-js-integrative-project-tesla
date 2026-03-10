@@ -1,0 +1,1 @@
+Website built for handling the event management of the organizations, fixing common problems like communication, managing and visualization of the events created, as well as automating this tasks. 
