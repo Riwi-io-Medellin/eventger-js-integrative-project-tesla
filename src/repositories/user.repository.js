@@ -28,14 +28,15 @@ async function findByEmail(email) {
 
 // POST
 async function create(data) {
-    const { name, email, password_hash, department_id, rol_id } = data
+    const { name, email, passwordHash, departmentId} = data
 
     const result = await pool.query(
         `
-        INSERT INTO user (name, email, password_hash, department_id, rol_id) 
-        VALUES ("${name}", "${email}", "${password_hash}", "${department_id}", "${rol_id}")
+        INSERT INTO "user" (name, email, password_hash, department_id) 
+        VALUES ($1, $2, $3, $4)
         RETURNING id
-        `
+        `,
+        [name, email, passwordHash, departmentId]
     )
 
     return result.rows[0].id

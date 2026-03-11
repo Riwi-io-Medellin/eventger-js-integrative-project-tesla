@@ -1,20 +1,43 @@
 const authService = require('./../services/auth.service')
 
-function register(req, res) {
-    const { name, email, password, department_id, rol_id } = req.body
+async function register(req, res, next) {
+    try {
+        const { name, email, password, departmentId } = req.body
 
-    // Validating body parameters
-    if(!name) return res.status(400).json({message: "Missing name parameter"});
-    else if(!email) return res.status(400).json({message: "Missing email parameter"});
-    else if(!password) return res.status(400).json({message: "Missing password parameter"});
-    else if(!department_id) return res.status(400).json({message: "Missing department_id parameter"});
-    else if(!rol_id) return res.status(400).json({message: "Missing name parameter"});
+        // Validating body parameters
+        if(!name) {
+            const err = new Error("Missing name parameter");
+            err.status = 400
 
-    // Calling service
-    const token = authService.register(req.body)
+            throw err
+        }
+        else if(!email) {
+            const err = new Error("Missing email parameter");
+            err.status = 400
 
-    // Returning response
-    res.status(201).json({token})
+            throw err
+        }
+        else if(!password) {
+            const err = new Error("Missing password parameter");
+            err.status = 400
+
+            throw err
+        }
+        else if(!departmentId) {
+            const err = new Error("Missing deparmentId parameter");
+            err.status = 400
+
+            throw err
+        };
+
+        // Calling service
+        const response = await authService.register(req.body)
+
+        // Returning response
+        res.status(201).json(response)
+    } catch(err) {
+        next(err)
+    }
 }
 
 module.exports = { register }
