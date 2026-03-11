@@ -1,12 +1,11 @@
 import {pool} from '../db/sql.js'
-import {getSpaceByNameService, getSpacesService } from '../services/space.service.js';
+import {countAllActiveSpacesService, countAllSpacesService, createSpaceService, deleteSpaceService, getSpaceByNameService, getSpaceByStatusService, getSpacesService, updateSpaceService, updateSpaceStatusService } from '../services/space.service.js';
 
 
 // 1. Controller to get all spaces
-export const getSpaces = async (req,res) =>{
-    
+export const getSpaces= async (req,res) =>{
     try{
-        const spaces = await getSpacesService();
+        const spaces= await getSpacesService();
         res.json({spaces})
     } catch (error){
         console.error('Error getting the space: ', error)
@@ -16,73 +15,142 @@ export const getSpaces = async (req,res) =>{
 
 // 2. Controller to get an space by search
 
-export const getSpaceByName =  async (req,res) =>{
-    const {name} = req.params;
+export const getSpaceByName=  async (req,res) =>{
+    const {name}= req.params;
     try{
-        const space = await getSpaceByNameService(name);
+        const space= await getSpaceByNameService(name);
+        if (!space || space.length===0){
+            return res.status(404).json({message: 'No items match the search'})
+        }
         res.json({space});
     } catch (error){
-        res.status(404).json({message: 'No items match the search'})
+        console.error(error);
+        res.status(500).json({message: 'Internal server error'})
     }
 }
 
-export const getSpaceByStatus
+//3. Controller to get an space by status
 
-getSpaceByStatusService(status)
-
-
-//3. Controller 
-
-
-
-
-
-export const createSpace = async (req,res) =>{
-    //datos que ingresa el cliente
-    const {name, birth_date} = req.body
-    const query = 'INSERT INTO test.patient (name, birth_date) VALUES ($1,$2) RETURNING *'
-
+export const getSpaceByStatus=  async (req,res) =>{
+    const {status} = req.params;
     try{
-        const response = await pool.query(query, [name, birth_date]);
-        res.status(201).json({ message: 'Patient created successfully'})
-    } catch (error){
-        console.error('Error creating the patient: ', error)
-        res.status(404).json({message: 'Error creating the patient'})
-    }
-}
-
-export const deleteSpace = async (req,res) =>{
-    const {id} = req.params;
-    const query = 'DELETE FROM test.patient WHERE id=$1'
-
-    try{
-        const response = await pool.query(query, [id]);
-        if (response.rowCount ===0){
-            return res.status(404).json({message: 'Patient not found'})
+        const space = await getSpaceByStatusService(status);
+        if (!space || space.length===0){
+            return res.status(404).json({message: 'No items match the search'})
         }
-
-        res.json({
-            message: 'Patient deletd succesfully',
-            patient: response.rows[0]
-        });
+        res.json({space});
     } catch (error){
-        console.error('Error deleting the patient: ', error)
-        res.status(404).json({message: 'Internal server error'})
+        console.error(error);
+        res.status(500).json({message: 'Internal server error'})
     }
 }
 
-export const updateSpace =async (req,res) =>{
-    const {id} = req.params;
-    const {name, birth_date} = req.body
+//4. Controller create space
 
-    const query = 'UPDATE test.patient SET name= $1, birth_date=$2 WHERE id=$3 RETURNING *'
-
+export const createSpace=  async (req,res) =>{
+    const {name, description,scenario_id} = req.body;
     try{
-        const response = await pool.query(query, [name, birth_date,id]);
-        response.rows[0]
-        res.status(200).json({ message: 'Patient updated successfully'})
+        const create= await createSpaceService(name, description,scenario_id);
+        res.json({create});
     } catch (error){
-        console.error('Error creating the patient: ', error)
-        res.status(404).json({message: 'Error updating the patient'})
+        console.error(error);
+        res.status(500).json({message: 'Internal server error'})
     }
 }
+
+// 5. Controller to delete the space
+
+export const deleteSpace= async (req,res) =>{
+    const {id} = req.params;
+    try{
+        const deleteSpa= await deleteSpaceService(id);
+        if (response.rowCount===0){
+            return res.status(404).json({message: 'Space not found'})
+        }
+        res.json({deleteSpa});
+    } catch (error){
+        console.error(error);
+        res.status(500).json({message: 'Internal server error'})
+    }
+}
+
+// 6. Controller to update the space
+export const updateSpace=  async (req,res) =>{
+    const {id} = req.params;
+    const {name, description,scenario_id} = req.body;
+    try{
+        const updateSpa = await updateSpaceService(name, description,scenario_id,id);
+        res.json({updateSpa});
+    } catch (error){
+        console.error(error);
+        res.status(500).json({message: 'Internal server error'})
+    }
+}
+
+// 7. Controller of  update the space by status
+
+export const updateSpaceStatus=  async (req,res) =>{
+    const {id} = req.params;
+    const {status} = req.body;
+    try{
+        const updateSpa = await updateSpaceStatusService(id, status);
+        res.json({updateSpa});
+    } catch (error){
+        console.error(error);
+        res.status(500).json({message: 'Internal server error'})
+    }
+}
+
+// 8. Controller to count all spaces
+
+export const countAllSpaces=  async (req,res) =>{
+    try{
+        const spaces= await countAllSpacesService();
+        res.json({spaces})
+    } catch (error){
+        console.error('Error getting the space: ', error)
+        res.status(500).json({message: 'Internal Error'})
+    }
+}
+
+// 9. Controller to count all active spaces
+
+export const countAllActiveSpaces=  async (req,res) =>{
+    try{
+        const spaces= await countAllActiveSpacesService();
+        res.json({spaces})
+    } catch (error){
+        console.error('Error getting the space: ', error)
+        res.status(500).json({message: 'Internal Error'})
+    }
+}
+
+// 10. Controller to count all inactive spaces
+
+export const countAllInactiveSpaces=  async (req,res) =>{
+    try{
+        const active= await countAllActiveSpacesService();
+        const all= await countAllSpacesService();
+        const inactive = all-active;
+        res.json({inactive})
+    } catch (error){
+        console.error('Error getting the space: ', error)
+        res.status(500).json({message: 'Internal Error'})
+    }
+}
+
+// 11. Controller for percentage
+
+export const percentage=  async (req,res) =>{
+    try{
+        const active= await countAllActiveSpacesService();
+        const all= await countAllSpacesService();
+        const percentage = ((all-active)/all)*100;
+        res.json({percentage})
+    } catch (error){
+        console.error('Error getting the space: ', error)
+        res.status(500).json({message: 'Internal Error'})
+    }
+}
+
+

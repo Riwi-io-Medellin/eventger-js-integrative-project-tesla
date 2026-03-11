@@ -34,16 +34,16 @@ export async function getSpaceByStatusService(status) {
 }
 
 // 4. Function to create a new space
-export async function createSpace(name, description, scenario) {
+export async function createSpaceService(name, description, scenario_id) {
     const query =`insert into public.space (name, description, scenario_id)
-                    values ($1, $2,(select sc.id from scenario sc where sc.name = $3 ))
+                    values ($1, $2, $3)
                     RETURNING *`
-    const {rows} = await pool.query(query,[name, description,scenario])
+    const {rows} = await pool.query(query,[name, description,scenario_id])
     return rows[0]
 }
 
 // 5. Function to delete a space
-export async function deleteSpace (id){
+export async function deleteSpaceService(id){
     const query = `DELETE FROM public.space 
                     WHERE id=$1
                     RETURNING *`
@@ -52,18 +52,18 @@ export async function deleteSpace (id){
 }
 
 // 6. Function to update an space
-export async function updateSpace(name, description, scenario_name,id){
+export async function updateSpaceService(name, description, scenario_id,id){
     const query = `UPDATE public.space 
-                    SET name= $1, description=$2 scenario_id =(select sc.id from scenario sc where sc.name = $3 )  
+                    SET name= $1, description=$2 scenario_id =$3  
                     WHERE id= $4
                     RETURNING *`
     
-    const response = await pool.query(query, [name, description,scenario_name,id]);
+    const response = await pool.query(query, [name, description,scenario_id,id]);
     response.rows[0]
 }
 
 // 7. FUnction to update status
-export async function updateSpaceStatus(id, status){
+export async function updateSpaceStatusService(id, status){
     const query =`UPDATE public.space
                     SET status = $1
                     WHERE id = $2
@@ -73,4 +73,16 @@ export async function updateSpaceStatus(id, status){
     return rows[0]
 }
 
+// 8. Function to count all spaces 
+export async function countAllSpacesService(){
+    const query =`SELECT count(id) as total FROM public.space`
+    const {rows} = await pool.query(query)
+    return number(rows[0].total)
+}
+// 9. Function to count active spaces
 
+export async function countAllActiveSpacesService(){
+    const query =`SELECT count(id) as total FROM public.space WHERE status= 'active'`
+    const {rows} = await pool.query(query)
+    return Number(rows[0].total)
+}
