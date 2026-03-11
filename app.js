@@ -3,7 +3,7 @@ const app = express()
 
 require("dotenv").config() // Dot-Env Use
 
-const handleError = require("./src/middlewares/handleError.middleware")
+//const handleError = require("./src/middlewares/handleError.middleware")
 
 const PORT = process.env.PORT || 3000
 
@@ -11,14 +11,11 @@ const PORT = process.env.PORT || 3000
 app.use(express.json())
 
 // Routes of App
-const authRouter = require('./src/routes/auth.route')
 
+const spaceRouter = require('./src/routes/space.route.js')
 
-app.use("/auth", authRouter)
-app.get("/", (req, res) => res.send("<h1>Hello World</h1>"))
-
-// Error handling middleware
-app.use(handleError())
+app.use("/space", spaceRouter)
 
 // App initializing
 app.listen(PORT, () => console.log(`The app is running on port ${PORT}`))
+

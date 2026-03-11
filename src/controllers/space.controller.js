@@ -1,9 +1,11 @@
-import {pool} from '../db/sql.js'
-import {countAllActiveSpacesService, countAllSpacesService, createSpaceService, deleteSpaceService, getSpaceByNameService, getSpaceByStatusService, getSpacesService, updateSpaceService, updateSpaceStatusService } from '../services/space.service.js';
-
+const pool = require('../db/sql.js').pool;
+const {countAllActiveSpacesService, countAllSpacesService, createSpaceService,
+  deleteSpaceService, getSpaceByNameService, getSpaceByStatusService, getSpacesService,
+  updateSpaceService, updateSpaceStatusService} = require('../services/space.service.js');
 
 // 1. Controller to get all spaces
-export const getSpaces= async (req,res) =>{
+
+const getSpaces= async (req,res) =>{
     try{
         const spaces= await getSpacesService();
         res.json({spaces})
@@ -15,7 +17,7 @@ export const getSpaces= async (req,res) =>{
 
 // 2. Controller to get an space by search
 
-export const getSpaceByName=  async (req,res) =>{
+const getSpaceByName=  async (req,res) =>{
     const {name}= req.params;
     try{
         const space= await getSpaceByNameService(name);
@@ -31,7 +33,7 @@ export const getSpaceByName=  async (req,res) =>{
 
 //3. Controller to get an space by status
 
-export const getSpaceByStatus=  async (req,res) =>{
+const getSpaceByStatus=  async (req,res) =>{
     const {status} = req.params;
     try{
         const space = await getSpaceByStatusService(status);
@@ -47,7 +49,7 @@ export const getSpaceByStatus=  async (req,res) =>{
 
 //4. Controller create space
 
-export const createSpace=  async (req,res) =>{
+const createSpace=  async (req,res) =>{
     const {name, description,scenario_id} = req.body;
     try{
         const create= await createSpaceService(name, description,scenario_id);
@@ -60,7 +62,7 @@ export const createSpace=  async (req,res) =>{
 
 // 5. Controller to delete the space
 
-export const deleteSpace= async (req,res) =>{
+const deleteSpace= async (req,res) =>{
     const {id} = req.params;
     try{
         const deleteSpa= await deleteSpaceService(id);
@@ -75,7 +77,7 @@ export const deleteSpace= async (req,res) =>{
 }
 
 // 6. Controller to update the space
-export const updateSpace=  async (req,res) =>{
+const updateSpace=  async (req,res) =>{
     const {id} = req.params;
     const {name, description,scenario_id} = req.body;
     try{
@@ -89,7 +91,7 @@ export const updateSpace=  async (req,res) =>{
 
 // 7. Controller of  update the space by status
 
-export const updateSpaceStatus=  async (req,res) =>{
+const updateSpaceStatus=  async (req,res) =>{
     const {id} = req.params;
     const {status} = req.body;
     try{
@@ -103,7 +105,7 @@ export const updateSpaceStatus=  async (req,res) =>{
 
 // 8. Controller to count all spaces
 
-export const countAllSpaces=  async (req,res) =>{
+const countAllSpaces=  async (req,res) =>{
     try{
         const spaces= await countAllSpacesService();
         res.json({spaces})
@@ -115,7 +117,7 @@ export const countAllSpaces=  async (req,res) =>{
 
 // 9. Controller to count all active spaces
 
-export const countAllActiveSpaces=  async (req,res) =>{
+const countAllActiveSpaces=  async (req,res) =>{
     try{
         const spaces= await countAllActiveSpacesService();
         res.json({spaces})
@@ -127,7 +129,7 @@ export const countAllActiveSpaces=  async (req,res) =>{
 
 // 10. Controller to count all inactive spaces
 
-export const countAllInactiveSpaces=  async (req,res) =>{
+const countAllInactiveSpaces=  async (req,res) =>{
     try{
         const active= await countAllActiveSpacesService();
         const all= await countAllSpacesService();
@@ -141,7 +143,7 @@ export const countAllInactiveSpaces=  async (req,res) =>{
 
 // 11. Controller for percentage
 
-export const percentage=  async (req,res) =>{
+const percentage=  async (req,res) =>{
     try{
         const active= await countAllActiveSpacesService();
         const all= await countAllSpacesService();
@@ -153,4 +155,6 @@ export const percentage=  async (req,res) =>{
     }
 }
 
+module.exports = {getSpaces, getSpaceByName, getSpaceByStatus, createSpace, deleteSpace, updateSpace, updateSpaceStatus, countAllSpaces,
+  countAllActiveSpaces, countAllInactiveSpaces, percentage};
 
