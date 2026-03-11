@@ -40,4 +40,31 @@ async function register(req, res, next) {
     }
 }
 
-module.exports = { register }
+async function login(req, res, next) {
+    try {
+        const { email, password } = req.body
+
+        // Validating body parameters
+        if(!email) {
+            const err = new Error("Missing email parameter")
+            err.status = 400
+
+            throw err
+        } else if(!password) {
+            const err = new Error("Missing password parameter")
+            err.status = 400
+
+            throw err
+        }
+
+        // Calling service
+        const response = await authService.login(req.body)
+
+        // Returing response
+        res.status(200).json(response)
+    } catch(err) {
+        next(err)
+    }
+}
+
+module.exports = { register, login }

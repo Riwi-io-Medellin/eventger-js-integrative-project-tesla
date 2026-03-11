@@ -1,6 +1,7 @@
 const userRepository = require("./../repositories/user.repository")
 
 const hash = require('./../utils/hash')
+const jwt = require('./../utils/jwt')
 
 async function register(data) {
     const { name, email, password, departmentId } = data
@@ -40,4 +41,47 @@ async function register(data) {
     return info
 }
 
-module.exports = { register }
+async function login(data) {
+    const { email, password } = data
+
+    // Checkings
+
+    // 1. The email user must be registered
+    const user = await userRepository.findByEmail(email)
+    //console.log("USER: ", user[0])
+    if(user.length == 0) {
+        const err = new Error("That email isn't registered yet.")
+        err.status = 401
+
+        throw err
+    } 
+    // 2. The account must be active
+    else if(!user[0].is_active) {
+        const err = new Error("The account isn't activated. Contact an admin support to active it.")
+        err.status = 401
+
+        throw err
+    }
+    // 3. The password hash must match
+    else if(!await hash.validate(user[0].password_hash, password)) {
+        const err = new Error("The password doesn't matches")
+        err.status = 401
+
+        throw err
+    }
+
+    // Generating JWT Token
+    const payload = {
+        id: user[0].id,
+        name: user[0].name,
+        email: user[0].email,
+        departmentId: user[0].department_id,
+        roleId: user[0].role_id
+    }
+
+    const token = jwt.generate(payload)
+
+    return {token}
+}
+
+module.exports = { register, login }
