@@ -6,6 +6,7 @@ import { initHome } from "./pages/home.js";
 import { initDashboard } from "./pages/dashboard.js";
 import { initNotFound } from "./pages/notFound.js";
 import { initRegister } from "./pages/register.js";
+import { initEvent } from "./pages/event.js";
 
 // ─── Tabla de rutas ───────────────────────────────────────────────────────────
 const routes = {
@@ -13,6 +14,7 @@ const routes = {
   "#/login": initLogin,
   "#/register": initRegister,
   "#/dashboard": initDashboard,
+  "#/event": initEvent,
 };
 
 // ─── Guard de autenticación ───────────────────────────────────────────────────
