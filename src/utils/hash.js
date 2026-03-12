@@ -1,7 +1,7 @@
 const argon2 = require('argon2')
 
 // Generates a HASH for encryption security
-async function generateHash(value) {
+async function generate(value) {
     return await argon2.hash(value, {
         type: argon2.argon2id,
          // Determinate the cost of memory for create each hash. More memory = More safe
@@ -18,8 +18,8 @@ async function generateHash(value) {
 }
 
 // Validate a original hash with another raw date, regenerating the hash
-async function validateHash(original, newValue) {
+async function validate(original, newValue) {
     return await argon2.verify(original, newValue)
 }
 
-module.exports = { generateHash, validateHash }
+module.exports = { generate, validate }
