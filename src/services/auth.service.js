@@ -2,6 +2,7 @@ const userRepository = require("./../repositories/user.repository")
 
 const hash = require('./../utils/hash')
 const jwt = require('./../utils/jwt')
+const nodemailer = require("./../utils/nodemailer")
 
 async function register(data) {
     const { name, email, password, departmentId } = data
@@ -41,16 +42,14 @@ async function register(data) {
     return info
 }
 
-async function login(data) {
-    const { email, password } = data
-
+async function login(email, password) {
     // Checkings
 
     // 1. The email user must be registered
     const user = await userRepository.findByEmail(email)
     //console.log("USER: ", user[0])
     if(user.length == 0) {
-        const err = new Error("That email isn't registered yet.")
+        const err = new Error("Invalid Credentials")
         err.status = 401
 
         throw err
@@ -58,13 +57,13 @@ async function login(data) {
     // 2. The account must be active
     else if(!user[0].is_active) {
         const err = new Error("The account isn't activated. Contact an admin support to active it.")
-        err.status = 401
+        err.status = 403
 
         throw err
     }
     // 3. The password hash must match
     else if(!await hash.validate(user[0].password_hash, password)) {
-        const err = new Error("The password doesn't matches")
+        const err = new Error("Invalid Credentials.")
         err.status = 401
 
         throw err
@@ -84,4 +83,59 @@ async function login(data) {
     return {token}
 }
 
-module.exports = { register, login }
+async function resetRequest(email) {
+    // Verify if the email exists
+    const user = await userRepository.findByEmail(email)
+
+    // If the email doesn't exists, return the message for avoid creating token
+    if(user.length == 0) return {message: "If the email exists, a link to reset the password has been sent."};
+
+    // Create JWT Token
+    const token = jwt.generateTemp({id: user.id}, "10m")
+
+    // Send email
+    const url = `${process.env.HOST_URL}/auth/reset-password?token=${token}`
+    const html = `
+            <h2>Password Reset</h2>
+
+            <p>
+                Hello ${user[0].name}, we recieve a request for reset your password.
+                Please follow the next link for resetting the password
+                <a href="${url}">Click Here</a>
+            </p>
+
+            <p>If you don't request a reset password, please ignore this email.</p>
+        `
+
+    await nodemailer.sendImportant({
+        addressee: email,
+        subject: "Reseting password - Eventger JS",
+        description: html
+    })
+
+    // Returning response
+    return {message: "If the email exists, a link to reset the password has been sent."}
+}
+
+async function resetPassword(token, newPassword) {
+    // Verifying token
+    const payload = jwt.verify(token)
+
+    if(!payload) {
+        const err = new Error("Bad Token")
+        err.status = 401
+
+        throw err
+    }
+
+    // Hashing password
+    const passwordHashed = await hash.generate(newPassword)
+
+    // Replacing it in DB
+    await userRepository.updatePassword(passwordHashed, payload.id)
+
+    // Returning response
+    return {message: "Password resetted with success"}
+}
+
+module.exports = { register, login, resetRequest, resetPassword }

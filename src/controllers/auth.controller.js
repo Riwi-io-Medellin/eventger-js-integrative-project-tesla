@@ -58,7 +58,7 @@ async function login(req, res, next) {
         }
 
         // Calling service
-        const response = await authService.login(req.body)
+        const response = await authService.login(email, password)
 
         // Returing response
         res.status(200).json(response)
@@ -67,4 +67,53 @@ async function login(req, res, next) {
     }
 }
 
-module.exports = { register, login }
+async function resetRequest(req, res, next) {
+    try {
+        const { email } = req.body
+
+        // Validate if email has been sent
+        if(!email) {
+            const err = new Error("Missing email parameter")
+            err.status = 400
+
+            throw err
+        }
+
+        // Calling service
+        const response = await authService.resetRequest(email)
+
+        // Returning response
+        res.status(200).json(response)
+    } catch(err) {
+        next(err)
+    }
+}
+
+async function resetPassword(req, res, next) {
+    try {
+        const { token, newPassword } = req.body
+
+        // Validate if token and new password has been sent
+        if(!token) {
+            const err = new Error("Missing token parameter")
+            err.status = 400
+
+            throw err
+        } else if(!newPassword) {
+            const err = new Error("Missing newPassword parameter")
+            err.status = 400
+
+            throw err
+        }
+
+        // Calling service
+        const response = await authService.resetPassword(token, newPassword)
+
+        // Returning response
+        res.status(200).json(response)
+    } catch(err) {
+        next(err)
+    }
+}
+
+module.exports = { register, login, resetRequest, resetPassword }

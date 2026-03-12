@@ -13,7 +13,7 @@ async function findById(id) {
 
     if(result.rows.length = 0) {
         const error = Error(`User with id ${id} not found`);
-        error.status = 404
+        error.status = 400
 
         throw error
     }
@@ -43,19 +43,24 @@ async function create(data) {
 }
 
 // PATCH
-async function updateName(name) {
-    const result = await pool.query(`UPDATE "user" SET name = $1`, [name])
+async function updateName(name, userId) {
+    const result = await pool.query(`UPDATE "user" SET name = $1 WHERE id = $2`, [name, userId])
 
     return result.rows
 }
-async function updateEmail(email) {
-    const result = await pool.query(`UPDATE "user" SET email = $1`, [email])
+async function updateEmail(email, userId) {
+    const result = await pool.query(`UPDATE "user" SET email = $1 WHERE id = $2`, [email, userId])
 }
 async function updateDepartment(department_id) {
 
 }
 async function updateRol(rol_id) {
 
+}
+async function updatePassword(newPassword, userId) {
+    const result = await pool.query(`UPDATE "user" SET password_hash = $1 WHERE id = $2`, [userId, newPassword])
+
+    return result.rows
 }
 
 // PUT
@@ -68,4 +73,4 @@ async function remove(id) {
 
 }
 
-module.exports = { find, findById, findByEmail, create }
+module.exports = { find, findById, findByEmail, create, updatePassword }
