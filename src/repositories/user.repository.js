@@ -3,20 +3,14 @@ const pool  = require('./../db/sql')
 // Create, find, findById, findByEmail, update, delete
 
 // GET
-async function find() {
-    const result = await pool.query(`SELECT * FROM "user"`)
+async function find(page, limit) {
+    // Offset and limit for avoid returning all users data
+    const result = await pool.query(`SELECT * FROM "user" LIMIT $1 OFFSET $2`, [limit, page])
 
     return result.rows
 }
 async function findById(id) {
     const result = await pool.query(`SELECT * FROM "user" WHERE id = $1`, [id])
-
-    if(result.rows.length = 0) {
-        const error = Error(`User with id ${id} not found`);
-        error.status = 400
-
-        throw error
-    }
 
     return result.rows
 }
@@ -28,15 +22,15 @@ async function findByEmail(email) {
 
 // POST
 async function create(data) {
-    const { name, email, passwordHash, departmentId} = data
+    const { name, email, passwordHash, departmentId, roleId, isActive } = data
 
     const result = await pool.query(
         `
-        INSERT INTO "user" (name, email, password_hash, department_id) 
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO "user" (name, email, password_hash, department_id, role_id, is_active) 
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id
         `,
-        [name, email, passwordHash, departmentId]
+        [name, email, passwordHash, departmentId, roleId, isActive]
     )
 
     return result.rows[0].id
