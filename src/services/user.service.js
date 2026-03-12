@@ -1,6 +1,25 @@
 const userRepository = require('./../repositories/user.repository')
 const roleRepository = require('./../repositories/role.repository')
 
+// GET
+async function get(id) {
+    // Make DB Query
+    const response = await userRepository.findById(id)
+
+    // Returning response
+    return response
+}
+async function getAll(page, limit) {
+    // Make DB Query
+    const actualPage = (page-1)*limit // SQL starts from 0 | The limit is 20
+
+    const users = await userRepository.find(actualPage, limit)
+
+    // Returning response
+    return users
+}
+
+// POST
 async function add(data) {
     const { name, email, password, departmentId, roleName } = data
 
@@ -10,7 +29,7 @@ async function add(data) {
     if(emailFound.length > 0) {
         console.log(emailFound)
         const error = Error("That email is already registered.")
-        error.status = 400
+        error.status = 401
 
         throw error
     }
@@ -44,14 +63,23 @@ async function add(data) {
     return info
 }
 
-async function getAll(page, limit) {
+// UPDATE
+
+// DELETE
+async function remove(id) {
     // Make DB Query
-    const actualPage = (page-1)*limit // SQL starts from 0 | The limit is 20
+    const response = await userRepository.remove(id)
 
-    const users = await userRepository.find(actualPage, limit)
+    // Check if the user doesn't existed
+    if(response.length == 0) {
+        const err = new Error("User with that ID doesn't exists")
+        err.status = 401
 
-    // Returning response
-    return users
+        throw err
+    }
+
+    // Returning
+    return {response}
 }
 
-module.exports = { add, getAll }
+module.exports = { add, get, getAll, remove }

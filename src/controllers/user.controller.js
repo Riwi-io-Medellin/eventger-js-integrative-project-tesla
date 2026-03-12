@@ -1,5 +1,55 @@
 const userService = require("./../services/user.service")
 
+// GET
+async function get(req, res, next) {
+    try {
+        const { id } = req.params
+
+        // Validate params
+        if(!id) {
+            const err = new Error("Missing ID parameter")
+            err.status = 400
+
+            throw err
+        }
+
+        // Calling service
+        const response = await userService.get(id)
+
+        // Returning response
+        return res.status(200).json(response)
+    } catch(err) {
+        next(err)
+    }
+}
+async function getAll(req, res, next) {
+    try {
+        const { page, limit } = req.query
+
+        // Validate params
+        if(!page) {
+            const err = new Error("Missing page query param.")
+            err.status = 400
+
+            throw err
+        } else if(!limit) {
+            const err = new Error("Missing limit query param.")
+            err.status = 400
+
+            throw err
+        }
+
+        // Calling service
+        const response = await userService.getAll(page, limit);
+
+        // Returning response
+        return res.status(200).json(response)
+    } catch(err) {
+        next(err)
+    }
+}
+
+// POST
 async function add(req, res, next) {
     try {
         let { name, email, password, departmentId, roleName } = req.body
@@ -45,26 +95,23 @@ async function add(req, res, next) {
     }
 }
 
-async function getAll(req, res, next) {
+// UPDATE
+
+// DELETE
+async function remove(req, res, next) {
     try {
-        const { page, limit } = req.query
+        const { id } = req.params
 
-        // Validate params
-        if(!page) {
-            const err = new Error("Missing page query param.")
-            err.status = 400
-
-            throw err
-        } else if(!limit) {
-            const err = new Error("Missing limit query param.")
+        if(!id) {
+            const err = new Error("Missing ID Param")
             err.status = 400
 
             throw err
         }
 
         // Calling service
-        const response = await userService.getAll(page, limit);
-
+        const response = await userService.remove(id)
+        console.log(response)
         // Returning response
         return res.status(200).json(response)
     } catch(err) {
@@ -72,4 +119,4 @@ async function getAll(req, res, next) {
     }
 }
 
-module.exports = { add, getAll }
+module.exports = { add, get, getAll, remove }

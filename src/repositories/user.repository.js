@@ -64,7 +64,9 @@ async function update(data) {
 
 // DELETE
 async function remove(id) {
+    const result = await pool.query(`DELETE FROM "user" WHERE id = $1 RETURNING *`, [id])
 
+    return result.rows
 }
 
-module.exports = { find, findById, findByEmail, create, updatePassword }
+module.exports = { find, findById, findByEmail, create, updatePassword, remove }
