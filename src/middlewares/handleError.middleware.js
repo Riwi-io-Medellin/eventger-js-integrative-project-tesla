@@ -1,4 +1,5 @@
 function handleError(err, req, res, next) {
+    console.log("ERRRORRRRRR")
     console.error(err)
 
     // It's not necessary use next() because we are sending a response
