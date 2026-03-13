@@ -57,8 +57,9 @@ if (!document.getElementById("eventos-style")) {
     * { box-sizing: border-box; }
     body { margin: 0; }
     .dash-layout { display:flex; min-height:100vh; font-family:'DM Sans',sans-serif; }
-    .dash-sidebar { width:210px;flex-shrink:0;background:#0f172a;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform 0.3s; }
-    .dash-main { margin-left:210px;flex:1;display:flex;flex-direction:column;background:#f8fafc;min-height:100vh; }
+    .dash-sidebar { width:210px;flex-shrink:0;background:#0f172a;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transform:translateX(-100%);transition:transform 0.3s; }
+    .dash-sidebar.open { transform:translateX(0); }
+    .dash-main { margin-left:0;flex:1;display:flex;flex-direction:column;background:#f8fafc;min-height:100vh; }
     .nav-item { display:flex;align-items:center;gap:0.75rem;padding:0.65rem 1.25rem;border-radius:0.5rem;margin:0.125rem 0.75rem;font-size:0.875rem;font-weight:500;color:#94a3b8;cursor:pointer;text-decoration:none;transition:background 0.15s,color 0.15s;border:none;background:none;width:calc(100% - 1.5rem);text-align:left; }
     .nav-item:hover  { background:rgba(255,255,255,0.07);color:#e2e8f0; }
     .nav-item.active { background:#2563eb;color:#fff; }
@@ -70,7 +71,7 @@ if (!document.getElementById("eventos-style")) {
     .ev-table td { padding:1rem 1.25rem;border-bottom:1px solid #f8fafc; }
     .ev-table tr:last-child td { border-bottom:none; }
     .ev-table tbody tr:hover { background:#f8fafc; }
-    .ev-cards { display:grid;grid-template-columns:repeat(auto-fill,minmax(19rem,1fr));gap:1.25rem; }
+    .ev-cards { display:grid;grid-template-columns:1fr;gap:1rem; }
     .ev-card { background:#fff;border-radius:1rem;border:1px solid #e2e8f0;overflow:hidden;transition:box-shadow 0.2s,transform 0.15s;box-shadow:0 1px 3px rgba(0,0,0,0.04); }
     .ev-card:hover { box-shadow:0 8px 24px -4px rgba(0,0,0,0.1);transform:translateY(-2px); }
     .modal-backdrop { position:fixed;inset:0;background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.2s ease; }
@@ -87,7 +88,7 @@ if (!document.getElementById("eventos-style")) {
     .select-wrap { position:relative; }
     .select-wrap::after { content:'';position:absolute;right:0.875rem;top:50%;transform:translateY(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid #94a3b8;pointer-events:none; }
     .select-wrap select.form-input { cursor:pointer;padding-right:2.25rem; }
-    .form-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:1rem; }
+    .form-grid-2 { display:grid;grid-template-columns:1fr;gap:1rem; }
     .form-err { display:none;color:#ef4444;font-size:0.75rem;margin:0; }
     .form-err.show { display:flex;align-items:center;gap:0.25rem; }
     .avail-banner { display:flex;align-items:flex-start;gap:0.625rem;border-radius:0.625rem;padding:0.7rem 0.875rem;font-size:0.8rem;font-weight:500;line-height:1.5;border:1.5px solid; }
@@ -96,15 +97,27 @@ if (!document.getElementById("eventos-style")) {
     .space-status-badge { display:inline-flex;align-items:center;gap:0.25rem;font-size:0.7rem;font-weight:600;padding:0.125rem 0.5rem;border-radius:9999px; }
     .action-btn { display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border-radius:0.5rem;border:none;cursor:pointer;transition:background 0.15s,transform 0.1s;background:transparent; }
     .action-btn:hover { transform:scale(1.1); }
+    .ev-filter-pill { display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.75rem;border-radius:9999px;border:1.5px solid #e2e8f0;background:#fff;font-size:0.775rem;font-weight:600;color:#64748b;cursor:pointer;transition:all 0.15s;white-space:nowrap;font-family:inherit; }
+    .ev-filter-pill:hover { border-color:#2563eb;color:#2563eb; }
+    .ev-filter-pill.active { background:#eff6ff;border-color:#2563eb;color:#2563eb; }
+    .hide-mobile { display:none!important; }
+    .ev-main-content { padding:1rem; }
+    .ev-page-title { font-size:1.25rem; }
+    .ev-header { padding:0 1rem; }
     @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
     @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
     @keyframes toastIn { from{opacity:0;transform:translateX(1rem)} to{opacity:1;transform:translateX(0)} }
-    @media (max-width:768px) {
-      .dash-sidebar{transform:translateX(-100%)} .dash-sidebar.open{transform:translateX(0)}
-      .dash-main{margin-left:0} .hide-mobile{display:none!important}
-      .ev-cards{grid-template-columns:1fr} .form-grid-2{grid-template-columns:1fr}
+    @media (min-width:769px) {
+      .show-mobile { display:none!important; }
+      .dash-sidebar { transform:none; }
+      .dash-main { margin-left:210px; }
+      .hide-mobile { display:revert!important; }
+      .ev-cards { grid-template-columns:repeat(auto-fill,minmax(19rem,1fr));gap:1.25rem; }
+      .form-grid-2 { grid-template-columns:1fr 1fr; }
+      .ev-main-content { padding:2rem 1.5rem; }
+      .ev-page-title { font-size:1.5rem; }
+      .ev-header { padding:0 1.5rem; }
     }
-    @media (min-width:769px) { .show-mobile{display:none!important} }
   `;
   document.head.appendChild(s);
 }
@@ -241,6 +254,8 @@ let evSearch = "";
 let evModal = null;
 let evSelected = null;
 let calInstance = null;
+let evCalSpace = ""; // '' = todos los espacios
+let evFilter = "";  // '' | 'active' | 'inactive'
 
 let MOCK_EVENTS = [
   {
@@ -576,16 +591,30 @@ function renderCards(events) {
 }
 
 function emptyState() {
+  const cfg = evFilter === "active"
+    ? { icon: "🗓️", title: "Sin eventos activos", sub: "No hay eventos próximos o en curso.", btn: false }
+    : evFilter === "inactive"
+    ? { icon: "📭", title: "Sin eventos pasados", sub: "Aún no hay eventos que hayan finalizado.", btn: false }
+    : { icon: null,  title: "Sin eventos", sub: "No se encontraron eventos.", btn: true };
+
+  const iconEl = cfg.icon
+    ? `<div style="font-size:2.5rem;margin-bottom:0.75rem;line-height:1;">${cfg.icon}</div>`
+    : `<div style="width:3.5rem;height:3.5rem;border-radius:50%;background:#eff6ff;border:2px solid #bfdbfe;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:#2563eb;">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+       </div>`;
+
+  const btnEl = cfg.btn
+    ? `<button onclick="openEvModal('create')" style="display:inline-flex;align-items:center;gap:0.5rem;background:#2563eb;color:#fff;border:none;border-radius:0.625rem;padding:0.625rem 1.25rem;font-size:0.875rem;font-weight:600;font-family:inherit;cursor:pointer;">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>Crear primer evento
+       </button>`
+    : "";
+
   return `
   <div style="background:#fff;border-radius:0.875rem;border:1px solid #e2e8f0;padding:4rem 2rem;text-align:center;">
-    <div style="width:3.5rem;height:3.5rem;border-radius:50%;background:#eff6ff;border:2px solid #bfdbfe;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:#2563eb;">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-    </div>
-    <h3 style="font-size:1rem;font-weight:600;color:#1e293b;margin:0 0 0.5rem;">Sin eventos</h3>
-    <p style="color:#64748b;font-size:0.875rem;margin:0 0 1.25rem;">No se encontraron eventos.</p>
-    <button onclick="openEvModal('create')" style="display:inline-flex;align-items:center;gap:0.5rem;background:#2563eb;color:#fff;border:none;border-radius:0.625rem;padding:0.625rem 1.25rem;font-size:0.875rem;font-weight:600;font-family:inherit;cursor:pointer;">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>Crear primer evento
-    </button>
+    ${iconEl}
+    <h3 style="font-size:1rem;font-weight:600;color:#1e293b;margin:0 0 0.5rem;">${cfg.title}</h3>
+    <p style="color:#64748b;font-size:0.875rem;margin:0 0 1.25rem;">${cfg.sub}</p>
+    ${btnEl}
   </div>`;
 }
 
@@ -800,10 +829,71 @@ function renderDeleteModal(ev) {
   </div>`;
 }
 
+// ─── Helpers calendario por espacio ───────────────────────────────────────────
+function applyFilter(events) {
+  const now = Date.now();
+  if (evFilter === "active")
+    return events.filter((ev) => new Date(ev.finish_date).getTime() > now);
+  if (evFilter === "inactive")
+    return events.filter((ev) => new Date(ev.finish_date).getTime() <= now);
+  return events;
+}
+
+function getCalEvents() {
+  const base = evCalSpace
+    ? MOCK_EVENTS.filter((ev) => ev.space_id === evCalSpace)
+    : MOCK_EVENTS;
+  return applyFilter(base);
+}
+
+function buildCalSpaceSelector() {
+  const opts = MOCK_SCENARIOS.map((sc) => {
+    const spaces = MOCK_SPACES.filter((sp) => sp.scenario_id === sc.id);
+    return `<optgroup label="${sc.name}">${spaces
+      .map(
+        (sp) =>
+          `<option value="${sp.id}"${sp.id === evCalSpace ? " selected" : ""}>${sp.name}</option>`,
+      )
+      .join("")}</optgroup>`;
+  }).join("");
+
+  const calEvs = getCalEvents();
+  const info = evCalSpace
+    ? `${calEvs.length} evento${calEvs.length !== 1 ? "s" : ""} en este espacio`
+    : `${calEvs.length} evento${calEvs.length !== 1 ? "s" : ""} en total`;
+
+  return `
+  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:0.5rem;flex:1;min-width:12rem;max-width:28rem;">
+      <svg fill="none" stroke="#94a3b8" viewBox="0 0 24 24" width="15" height="15" style="flex-shrink:0;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <div class="select-wrap" style="flex:1;">
+        <select class="form-input" id="ev-cal-space" onchange="onCalSpaceChange(this.value)"
+          style="background:#fff;padding-top:0.5rem;padding-bottom:0.5rem;">
+          <option value="">Todos los espacios</option>
+          ${opts}
+        </select>
+      </div>
+    </div>
+    <span id="ev-cal-count" style="font-size:0.8rem;color:#64748b;white-space:nowrap;">${info}</span>
+  </div>`;
+}
+
+function calendarSection() {
+  return `
+    ${buildCalSpaceSelector()}
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <div id="ev-calendar" style="min-width:520px;"></div>
+    </div>`;
+}
+
 // ─── Render principal ─────────────────────────────────────────────────────────
 function getFiltered() {
   const q = evSearch;
-  return MOCK_EVENTS.filter(
+  return applyFilter(MOCK_EVENTS).filter(
     (ev) =>
       ev.title.toLowerCase().includes(q) ||
       nameOf(MOCK_SCENARIOS, ev.scenario_id).toLowerCase().includes(q) ||
@@ -818,7 +908,7 @@ function renderPage() {
   <div class="dash-layout">
     ${renderSidebar()}
     <main class="dash-main">
-      <header style="height:3.5rem;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 1.5rem;gap:1rem;position:sticky;top:0;z-index:50;">
+      <header class="ev-header" style="height:3.5rem;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:50;">
         <button onclick="document.getElementById('ev-sidebar').classList.toggle('open')" class="show-mobile" style="background:none;border:none;cursor:pointer;color:#64748b;padding:0.25rem;">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
@@ -838,10 +928,10 @@ function renderPage() {
           </div>
         </div>
       </header>
-      <div style="padding:2rem 1.5rem;flex:1;">
+      <div class="ev-main-content" style="flex:1;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.75rem;flex-wrap:wrap;">
           <div>
-            <h1 style="font-size:1.5rem;font-weight:700;color:#0f172a;margin:0 0 0.25rem;letter-spacing:-0.02em;">Gestión de Eventos</h1>
+            <h1 class="ev-page-title" style="font-weight:700;color:#0f172a;margin:0 0 0.25rem;letter-spacing:-0.02em;">Gestión de Eventos</h1>
             <p style="color:#64748b;font-size:0.9375rem;margin:0;">Administrar todos los eventos · <strong style="color:#1e293b;">${MOCK_EVENTS.length}</strong> en total</p>
           </div>
           <button onclick="openEvModal('create')"
@@ -860,6 +950,15 @@ function renderPage() {
               onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e2e8f0'"
               oninput="evSearchHandler(this.value)"/>
           </div>
+          <div style="display:flex;gap:0.375rem;flex-wrap:wrap;">
+            <button class="ev-filter-pill ${evFilter === "" ? "active" : ""}" onclick="setEvFilter('')">Todos</button>
+            <button class="ev-filter-pill ${evFilter === "active" ? "active" : ""}" onclick="setEvFilter('active')">
+              <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#22c55e;flex-shrink:0;"></span>Activos
+            </button>
+            <button class="ev-filter-pill ${evFilter === "inactive" ? "active" : ""}" onclick="setEvFilter('inactive')">
+              <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:#ca8a04;flex-shrink:0;"></span>Inactivos
+            </button>
+          </div>
           <div style="display:flex;gap:0.375rem;margin-left:auto;">
             <button id="btn-list"     class="view-btn ${evView === "list" ? "active" : ""}"     onclick="setEvView('list')"     title="Vista lista">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
@@ -874,7 +973,7 @@ function renderPage() {
         </div>
 
         <div id="ev-content">
-          ${evView === "list" ? renderList(filtered) : evView === "cards" ? renderCards(filtered) : '<div id="ev-calendar" style="margin-top:0.25rem;"></div>'}
+          ${evView === "list" ? renderList(filtered) : evView === "cards" ? renderCards(filtered) : calendarSection()}
         </div>
       </div>
     </main>
@@ -882,7 +981,7 @@ function renderPage() {
   </div>`;
 
   if (evView === "calendar") {
-    createCalendar({ containerId: "ev-calendar", events: MOCK_EVENTS }).then(
+    createCalendar({ containerId: "ev-calendar", events: getCalEvents() }).then(
       (cal) => {
         calInstance = cal;
       },
@@ -903,9 +1002,8 @@ function setEvView(view) {
   else if (view === "cards")
     document.getElementById("ev-content").innerHTML = renderCards(filtered);
   else {
-    document.getElementById("ev-content").innerHTML =
-      '<div id="ev-calendar" style="margin-top:0.25rem;"></div>';
-    createCalendar({ containerId: "ev-calendar", events: MOCK_EVENTS }).then(
+    document.getElementById("ev-content").innerHTML = calendarSection();
+    createCalendar({ containerId: "ev-calendar", events: getCalEvents() }).then(
       (cal) => {
         calInstance = cal;
       },
@@ -915,6 +1013,37 @@ function setEvView(view) {
     document.getElementById(`btn-${v}`)?.classList.toggle("active", v === view),
   );
 }
+
+function setEvFilter(val) {
+  evFilter = val;
+  document.querySelectorAll(".ev-filter-pill").forEach((el) => {
+    const map = { "": 0, active: 1, inactive: 2 };
+    const idx = [...el.parentElement.children].indexOf(el);
+    el.classList.toggle("active", map[val] === idx);
+  });
+  const filtered = getFiltered();
+  if (evView === "list")
+    document.getElementById("ev-content").innerHTML = renderList(filtered);
+  else if (evView === "cards")
+    document.getElementById("ev-content").innerHTML = renderCards(filtered);
+  else if (calInstance) calInstance.setEvents(getCalEvents());
+}
+window.setEvFilter = setEvFilter;
+
+function onCalSpaceChange(spaceId) {
+  evCalSpace = spaceId;
+  const calEvs = getCalEvents();
+  if (calInstance) calInstance.setEvents(calEvs);
+  // Actualizar contador
+  const countEl = document.getElementById("ev-cal-count");
+  if (countEl) {
+    const info = spaceId
+      ? `${calEvs.length} evento${calEvs.length !== 1 ? "s" : ""} en este espacio`
+      : `${calEvs.length} evento${calEvs.length !== 1 ? "s" : ""} en total`;
+    countEl.textContent = info;
+  }
+}
+window.onCalSpaceChange = onCalSpaceChange;
 
 function evSearchHandler(val) {
   evSearch = val.toLowerCase();
@@ -1093,7 +1222,7 @@ function refreshContent() {
     document.getElementById("ev-content").innerHTML = renderList(filtered);
   else if (evView === "cards")
     document.getElementById("ev-content").innerHTML = renderCards(filtered);
-  else if (calInstance) calInstance.setEvents(MOCK_EVENTS);
+  else if (calInstance) calInstance.setEvents(getCalEvents());
   // Actualizar contador en el subtítulo
   const subtitle = document.querySelector(".ev-subtitle-count");
   if (subtitle) subtitle.textContent = MOCK_EVENTS.length;
@@ -1122,6 +1251,8 @@ export async function initEvent() {
   }
   evView = "list";
   evSearch = "";
+  evCalSpace = "";
+  evFilter = "";
   await loadSonner();
   renderPage();
 }

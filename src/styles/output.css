@@ -619,20 +619,12 @@ video {
   visibility: visible;
 }
 
-.collapse {
-  visibility: collapse;
-}
-
 .fixed {
   position: fixed;
 }
 
 .absolute {
   position: absolute;
-}
-
-.sticky {
-  position: sticky;
 }
 
 .block {
@@ -647,10 +639,6 @@ video {
   display: table;
 }
 
-.grid {
-  display: grid;
-}
-
 .hidden {
   display: none;
 }
@@ -661,10 +649,6 @@ video {
 
 .flex-shrink {
   flex-shrink: 1;
-}
-
-.border-collapse {
-  border-collapse: collapse;
 }
 
 .transform {
@@ -698,10 +682,6 @@ video {
 
 .opacity-75 {
   opacity: 0.75;
-}
-
-.outline {
-  outline-style: solid;
 }
 
 .blur {
