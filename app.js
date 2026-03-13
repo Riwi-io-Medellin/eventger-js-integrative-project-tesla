@@ -16,9 +16,11 @@ app.use(morgan("dev"))
 
 const spaceRouter = require('./src/routes/space.route.js')
 const scenarioRouter = require('./src/routes/scenario.route.js')
+const profileRouter= require('./src/routes/profile.route.js')
 
 app.use("/space", spaceRouter)
 app.use("/scenario", scenarioRouter)
+app.use("/profile", profileRouter)
 
 // Error handling middleware
 app.use(handleError)
