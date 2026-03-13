@@ -19,6 +19,11 @@ async function findByEmail(email) {
 
     return result.rows
 }
+async function findUnactive() {
+    const result = await pool.query(`SELECT * FROM "user" WHERE is_active = $1`, [false])
+
+    return result.rows
+}
 
 // POST
 async function create(data) {
@@ -36,37 +41,53 @@ async function create(data) {
     return result.rows[0].id
 }
 
-// PATCH
-async function updateName(name, userId) {
-    const result = await pool.query(`UPDATE "user" SET name = $1 WHERE id = $2`, [name, userId])
+// PUT
+async function update(data, id) {
+    const { name, email, departmentId, roleId, isActive } = data
+
+    const result = await pool.query(
+        `UPDATE "user" 
+        SET 
+            name = $1, 
+            email = $2, 
+            department_id = $3, 
+            role_id = $4, 
+            is_active = $5 
+        WHERE id = $6
+        RETURNING *`,
+        [name, email, departmentId, roleId, isActive, id]
+    )
 
     return result.rows
 }
-async function updateEmail(email, userId) {
-    const result = await pool.query(`UPDATE "user" SET email = $1 WHERE id = $2`, [email, userId])
-}
-async function updateDepartment(department_id) {
 
-}
-async function updateRol(rol_id) {
-
-}
+// PATCH
 async function updatePassword(newPassword, userId) {
     const result = await pool.query(`UPDATE "user" SET password_hash = $1 WHERE id = $2`, [userId, newPassword])
 
     return result.rows
 }
-
-// PUT
-async function update(data) {
-
-}
-
-// DELETE
-async function remove(id) {
-    const result = await pool.query(`DELETE FROM "user" WHERE id = $1 RETURNING *`, [id])
+async function updateActive(value, id) {
+    const result = await pool.query(`UPDATE "user" SET is_active = $1 WHERE id = $2 RETURNING *`, [value, id])
 
     return result.rows
 }
 
-module.exports = { find, findById, findByEmail, create, updatePassword, remove }
+// DELETE
+async function remove(id) {
+    const result = await pool.query(`DELETE FROM "user" WHERE id = $1 RETURNING id, email, is_active`, [id])
+
+    return result.rows
+}
+
+module.exports = { 
+    find, 
+    findById, 
+    findByEmail, 
+    findUnactive, 
+    create, 
+    update,
+    updatePassword, 
+    updateActive,
+    remove 
+}

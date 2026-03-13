@@ -4,10 +4,27 @@ const roleRepository = require('./../repositories/role.repository')
 // GET
 async function get(id) {
     // Make DB Query
-    const response = await userRepository.findById(id)
+    const response = await userRepository.findById(id)[0]
+
+    // Checking the user exists
+    if(!response) {
+        const err = new Error("User with that ID doesn't exists")
+        err.status = 401
+
+        throw err
+    }
+
+    // Creating user object
+    const user = {
+        id: response.id,
+        name: response.name,
+        email: response.email,
+        departmentId: response.department_id,
+        roleId: response.role_id
+    }
 
     // Returning response
-    return response
+    return user
 }
 async function getAll(page, limit) {
     // Make DB Query
@@ -18,6 +35,13 @@ async function getAll(page, limit) {
     // Returning response
     return users
 }
+async function getUnactive() {
+    // Make DB Query
+    const response = await userRepository.findUnactive()
+
+    // Returning response
+    return response
+}
 
 // POST
 async function add(data) {
@@ -27,7 +51,6 @@ async function add(data) {
     const emailFound = await userRepository.findByEmail(email)
 
     if(emailFound.length > 0) {
-        console.log(emailFound)
         const error = Error("That email is already registered.")
         error.status = 401
 
@@ -35,7 +58,7 @@ async function add(data) {
     }
 
     // Asign role ID
-    const roleId = await roleRepository.findByName(roleName)
+    const roleId = await roleRepository.findByName(roleName).id
 
     // Hash the password
     const passwordHash = await hash.generate(password)
@@ -64,6 +87,43 @@ async function add(data) {
 }
 
 // UPDATE
+async function update(data, id) {
+    const { name, email, departmentId, roleName, isActive } = data
+
+    // Verify that the email is registered
+    const emailFound = await userRepository.findByEmail(email)
+
+    if(emailFound.length == 0) {
+        const error = Error("That email user isn't registered.")
+        error.status = 401
+
+        throw error
+    }
+
+    // Asign role ID
+    const roleId =  await roleRepository.findByName(roleName).id
+
+    // Save in the DB
+    const updatedUser = {
+        name,
+        email,
+        departmentId,
+        roleId,
+        isActive
+    }
+    
+    const response = await userRepository.update(updatedUser, id)
+
+    // Return response
+    return response
+}
+async function updateActive(value, id) {
+    // DB Query
+    const response = await userRepository.updateActive(value, id)
+
+    // Returning response
+    return response
+}
 
 // DELETE
 async function remove(id) {
@@ -82,4 +142,4 @@ async function remove(id) {
     return {response}
 }
 
-module.exports = { add, get, getAll, remove }
+module.exports = { add, get, getAll, getUnactive, update, updateActive, remove }
