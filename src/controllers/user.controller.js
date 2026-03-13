@@ -7,8 +7,13 @@ async function get(req, res, next) {
     try {
         const { id } = req.params
 
-        // Validate params
-        validate.requiredFields(req.body, "id")
+        // Validate ID
+        if(!id) {
+            const err = new Error("Missing id query parameter")
+            err.status = 400
+
+            throw err
+        }
 
         // Calling service
         const response = await userService.get(id)

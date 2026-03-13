@@ -1,6 +1,23 @@
 const pool = require("./../db/sql")
 
 // Util functions
+
+/*
+Return all dates where the event start_date is minor than the new finish date,
+and where the finish_date it's higher than the new start date.
+
+For example:
+    Event:
+        - Start Date: 2026/03/12
+        - Finish Date: 2026/03/15
+    New Event:
+        - Start Date: 2026/03/13
+        - Finish Date: 2026/03/14
+    
+    2026/03/12 < 2026/03/14 -> Means that the event ends after the original start date
+    AND
+    2026/03/15 > 2026/03/13 -> Means that the event starts before the original end date
+*/
 async function checkDates(initDate, finishDate) {
     const result = await pool.query(
         `SELECT * FROM event WHERE start_date < $1 AND finish_date > $2`,
@@ -11,18 +28,50 @@ async function checkDates(initDate, finishDate) {
 }
 
 // GET
-async function get(id) {
+async function getRecent() {
     const result = await pool.query(
-        `SELECT * FROM event WHERE id = $1`,
-        [id]
+        `
+        SELECT * FROM event GROUP BY id ORDER BY start_date DESC LIMIT 15
+        `
     )
 
     return result.rows
 }
-async function getByUserId(userId) {
+async function search(filters) {
+    let query = `SELECT * FROM event WHERE 1=1`
+    const values = []
+
+    let i = 1
+
+    if(filters.isActive) {
+        query += ` AND is_active = $${i++}`
+        values.push(filters.isActive)
+    }
+    if(filters.spaceId) {
+        query += ` AND space_id = $${i++}`
+        values.push(filters.spaceId)
+    }
+    if(filters.scenarioId) {
+        query += ` AND scenario_id = $${i++}`
+        values.push(filters.scenarioId)
+    }
+    if(filters.disciplineId) {
+        query += ` AND discipline_id = $${i++}`
+        values.push(filters.disciplineId)
+    }
+    if(filters.creatorId) {
+        query += ` AND creator_id = $${i++}`
+        values.push(filters.creatorId)
+    }
+
+    const result = await pool.query(query, values)
+
+    return result.rows
+}
+async function getById(id) {
     const result = await pool.query(
-        `SELECT * FROM event WHERE creator_id = $1`,
-        [userId]
+        `SELECT * FROM event WHERE id = $1`,
+        [id]
     )
 
     return result.rows
@@ -80,9 +129,10 @@ async function remove(id) {
 
 module.exports = {
     checkDates,
-    get,
-    getByUserId,
+    getRecent,
+    getById,
     getByDate,
+    search,
     create,
     remove
 }
