@@ -1,6 +1,6 @@
 const userService = require("./../services/user.service")
 
-const validate = require("./../middlewares/validate.middleware")
+const validate = require("./../utils/validate")
 
 // GET
 async function get(req, res, next) {
@@ -8,7 +8,7 @@ async function get(req, res, next) {
         const { id } = req.params
 
         // Validate params
-        validate.requiredFields("id")
+        validate.requiredFields(req.body, "id")
 
         // Calling service
         const response = await userService.get(id)
@@ -24,7 +24,7 @@ async function getAll(req, res, next) {
         const { page, limit } = req.query
 
         // Validate params
-        validate.requiredFields("page", "limit")
+        validate.requiredFields(req.body, "page", "limit")
 
         // Calling service
         const response = await userService.getAll(page, limit);
@@ -52,6 +52,7 @@ async function add(req, res, next) {
     try {
         // Validating body parameters
         validate.requiredFields(
+            req.body,
             "name",
             "email",
             "password",
@@ -76,6 +77,7 @@ async function update(req, res, next) {
 
         // Validating body parameters
         validate.requiredFields(
+            req.body,
             "name",
             "email",
             "departmentId",
@@ -105,7 +107,7 @@ async function updateActive(req, res, next) {
         const { id } = req.query
 
         // Validating parameters
-        validate.requiredFields("isActive")
+        validate.requiredFields(req.body, "isActive")
 
         // Validating ID
         if(!id) {
