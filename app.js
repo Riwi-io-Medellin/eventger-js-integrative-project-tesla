@@ -5,7 +5,6 @@ require("dotenv").config() // Dot-Env Use
 const morgan = require('morgan')
 
 const handleError = require("./src/middlewares/handleError.middleware")
-const routeValidation = require("./src/middlewares/routeValidation.middleware")
 
 const PORT = process.env.PORT || 3000
 
@@ -24,6 +23,11 @@ app.use("/auth", authRouter)
 const userRouter = require('./src/routes/user.route')
 
 app.use("/user", userRouter)
+
+// Events Module
+const eventModule = require("./src/routes/event.route")
+
+app.use("/event", eventModule)
 
 // Error handling middleware
 app.use(handleError)
