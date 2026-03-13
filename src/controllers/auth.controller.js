@@ -1,34 +1,16 @@
 const authService = require('./../services/auth.service')
 
+const validate = require("./../middlewares/validate.middleware")
+
 async function register(req, res, next) {
     try {
-        const { name, email, password, departmentId } = req.body
-
         // Validating body parameters
-        if(!name) {
-            const err = new Error("Missing name parameter");
-            err.status = 400
-
-            throw err
-        }
-        else if(!email) {
-            const err = new Error("Missing email parameter");
-            err.status = 400
-
-            throw err
-        }
-        else if(!password) {
-            const err = new Error("Missing password parameter");
-            err.status = 400
-
-            throw err
-        }
-        else if(!departmentId) {
-            const err = new Error("Missing deparmentId parameter");
-            err.status = 400
-
-            throw err
-        };
+        validate.requiredFields(
+            "name",
+            "email",
+            "password",
+            "departmentId"
+        )
 
         // Calling service
         const response = await authService.register(req.body)
@@ -44,17 +26,7 @@ async function login(req, res, next) {
         const { email, password } = req.body
 
         // Validating body parameters
-        if(!email) {
-            const err = new Error("Missing email parameter")
-            err.status = 400
-
-            throw err
-        } else if(!password) {
-            const err = new Error("Missing password parameter")
-            err.status = 400
-
-            throw err
-        }
+        validate.requiredFields("email", "password")
 
         // Calling service
         const response = await authService.login(email, password)
@@ -71,12 +43,7 @@ async function resetRequest(req, res, next) {
         const { email } = req.body
 
         // Validate if email has been sent
-        if(!email) {
-            const err = new Error("Missing email parameter")
-            err.status = 400
-
-            throw err
-        }
+        validate.requiredFields("email")
 
         // Calling service
         const response = await authService.resetRequest(email)
@@ -92,17 +59,7 @@ async function resetPassword(req, res, next) {
         const { token, newPassword } = req.body
 
         // Validate if token and new password has been sent
-        if(!token) {
-            const err = new Error("Missing token parameter")
-            err.status = 400
-
-            throw err
-        } else if(!newPassword) {
-            const err = new Error("Missing newPassword parameter")
-            err.status = 400
-
-            throw err
-        }
+        validate.requiredFields("token", "newPassword")
 
         // Calling service
         const response = await authService.resetPassword(token, newPassword)

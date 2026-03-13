@@ -1,17 +1,14 @@
 const userService = require("./../services/user.service")
 
+const validate = require("./../middlewares/validate.middleware")
+
 // GET
 async function get(req, res, next) {
     try {
         const { id } = req.params
 
         // Validate params
-        if(!id) {
-            const err = new Error("Missing ID parameter")
-            err.status = 400
-
-            throw err
-        }
+        validate.requiredFields("id")
 
         // Calling service
         const response = await userService.get(id)
@@ -27,17 +24,7 @@ async function getAll(req, res, next) {
         const { page, limit } = req.query
 
         // Validate params
-        if(!page) {
-            const err = new Error("Missing page query param.")
-            err.status = 400
-
-            throw err
-        } else if(!limit) {
-            const err = new Error("Missing limit query param.")
-            err.status = 400
-
-            throw err
-        }
+        validate.requiredFields("page", "limit")
 
         // Calling service
         const response = await userService.getAll(page, limit);
@@ -63,38 +50,14 @@ async function getUnactive(req, res, next) {
 // POST
 async function add(req, res, next) {
     try {
-        let { name, email, password, departmentId, roleName } = req.body
-
         // Validating body parameters
-        if(!name) {
-            const err = new Error("Missing name parameter");
-            err.status = 400
-
-            throw err
-        }
-        else if(!email) {
-            const err = new Error("Missing email parameter");
-            err.status = 400
-
-            throw err
-        }
-        else if(!password) {
-            const err = new Error("Missing password parameter");
-            err.status = 400
-
-            throw err
-        }
-        else if(!departmentId) {
-            const err = new Error("Missing deparmentId parameter");
-            err.status = 400
-
-            throw err
-        } else if(!roleName) {
-            const err = new Error("Missing role parameter")
-            err.status = 400
-
-            throw err
-        }
+        validate.requiredFields(
+            "name",
+            "email",
+            "password",
+            "departmentId",
+            "roleName"
+        )
 
         // Calling service
         const response = await userService.add(req.body)
@@ -110,42 +73,18 @@ async function add(req, res, next) {
 async function update(req, res, next) {
     try {
         const { id } = req.params
-        const { name, email, departmentId, roleName, isActive } = req.body
 
         // Validating body parameters
-        if(!name) {
-            const err = new Error("Missing name parameter");
-            err.status = 400
-
-            throw err
-        }
-        else if(!email) {
-            const err = new Error("Missing email parameter");
-            err.status = 400
-
-            throw err
-        }
-        else if(!departmentId) {
-            const err = new Error("Missing deparmentId parameter");
-            err.status = 400
-
-            throw err
-        }
-        else if(!roleName) {
-            const err = new Error("Missing roleName parameter");
-            err.status = 400
-
-            throw err
-        }
-        else if(!("isActive" in req.body)) {
-            const err = new Error("Missing isActive parameter");
-            err.status = 400
-
-            throw err
-        };
-        // Validating ID Path parameter
+        validate.requiredFields(
+            "name",
+            "email",
+            "departmentId",
+            "roleName",
+            "isActive"
+        )
+        // Validate ID
         if(!id) {
-            const err = new Error("Missing ID path parameter");
+            const err = new Error("Missing id query parameter")
             err.status = 400
 
             throw err
@@ -166,12 +105,7 @@ async function updateActive(req, res, next) {
         const { id } = req.query
 
         // Validating parameters
-        if(!("isActive" in req.body)) {
-            const err = new Error("Missing isActive param")
-            err.status = 400
-
-            throw err
-        }
+        validate.requiredFields("isActive")
 
         // Validating ID
         if(!id) {
