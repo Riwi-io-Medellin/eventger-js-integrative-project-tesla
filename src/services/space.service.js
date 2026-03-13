@@ -1,79 +1,58 @@
-const pool = require('../db/sql.js');
+const {getSpacesRepository, checkSpaceRepository, createSpaceRepository,
+    deleteSpaceRepository,updateSpaceRepository, updateSpaceStatusRepository} = require('../repositories/space.repository.js');
 
-
-// 1. Function to Show all spaces OK
+// 1. Function to Show all spaces
 async function getSpacesService() {
-    const query = `select  s.name, s.description, s.status, sc.name as scenario_name
-                    from public.space s 
-                    inner join public.scenario sc 
-                    on sc.id = s.scenario_id`
-    const response= await pool.query(query)
+    const response = await getSpacesRepository();
     return response.rows;
 } 
 
-// 2. Function to create a new space OK
+// 2. Function to create a new space and check if is an existing space
 async function createSpaceService(name, description, scenario_id) {
-    const checkQuery= `SELECT * 
-                        FROM public.space 
-                        WHERE name=$1 and scenario_id=$2`;
-    const check = await pool.query(checkQuery, [name, scenario_id])
-
-    const query =`insert into public.space (name, description, scenario_id)
-                    values ($1, $2, $3)
-                    RETURNING *`
+    const check = await checkSpaceRepository(name, scenario_id)
 
     if (check.rowCount===0){
-        const response = await pool.query(query,[name, description,scenario_id])
+        const response = await createSpaceRepository(name, description, scenario_id)
         return response.rows[0];
     } else{
-        const message = 'This space already exists in the scenario'
-        return message;
+        return false;
     }
-}
+}       
 
-
-// 3. Function to delete a space OK
+// 3. Function to delete a space 
 async function deleteSpaceService(id){
-    const query = `DELETE FROM public.space 
-                    WHERE id=$1`
-    const response = await pool.query(query, [id]);
+    const response = await deleteSpaceRepository(id);
+    console.log(response)
     return response;
 }
 
 // 4. Function to update an space
-async function updateSpaceService(name, description, scenario_id,id){
-    const checkQuery= `SELECT * 
-                        FROM public.space 
-                        WHERE name=$1 and scenario_id=$2`;
-    const check = await pool.query(checkQuery, [name, scenario_id])
+async function updateSpaceService(name, description, scenario_id, id) {
+    const check= await checkSpaceRepository(name, scenario_id)
+    console.log(check)
+    let id_verify;
+    if (check.rowCount>0){
+        id_verify = check.rows[0].id
+        console.log({'PRUEBITA': id_verify})
+    } 
 
-    const query = `UPDATE public.space 
-                    SET name= $1, description=$2, scenario_id =$3  
-                    WHERE id= $4
-                    RETURNING *`
-
-    if (check.rowCount===0){
-        const response = await pool.query(query,[name, description,scenario_id,id])
+    if (check.rowCount!=0 && id_verify===id){
+        const response = await updateSpaceRepository(name, description, scenario_id, id)
         return response.rows[0];
+    } else if (check.rowCount===0){
+        const response = await updateSpaceRepository(name, description, scenario_id, id)
+        return response.rows[0];
+        console.log(response)
     } else{
-        const message = 'That space name already exists for that scenario'
-        return message;}
+        return false;
+    }
 }
 
 // 5. Function to update status
 async function updateSpaceStatusService(id, status){
-    const query =`UPDATE public.space
-                    SET status = $1
-                    WHERE id = $2
-                    RETURNING *`
-
-    const response= await pool.query(query, [status, id]);
-    return response.rows[0];
+    const response= await updateSpaceStatusRepository(id, status);
+    return response.rows;
 }
 
-module.exports = {getSpacesService,
-                createSpaceService,
-                deleteSpaceService,
-                updateSpaceService,
-                updateSpaceStatusService,
-};
+module.exports = {getSpacesService, createSpaceService, deleteSpaceService, updateSpaceService,
+    updateSpaceStatusService}
