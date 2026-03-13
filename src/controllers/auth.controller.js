@@ -39,7 +39,6 @@ async function register(req, res, next) {
         next(err)
     }
 }
-
 async function login(req, res, next) {
     try {
         const { email, password } = req.body
@@ -88,7 +87,6 @@ async function resetRequest(req, res, next) {
         next(err)
     }
 }
-
 async function resetPassword(req, res, next) {
     try {
         const { token, newPassword } = req.body
