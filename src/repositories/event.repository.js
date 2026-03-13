@@ -113,11 +113,51 @@ async function create(data) {
 }
 
 // UPDATE
-async function update() {
+async function update(id, data) {
+    const {
+        title,
+        description,
+        startDate,
+        finishDate,
+        isActive,
+        disciplineId,
+        scenarioId,
+        spaceId,
+        creatorId
+    } = data
 
+    const result = await pool.query(
+        `
+        UPDATE event
+        SET title = $1, description = $2, start_date = $3, finish_date = $4, is_active = $5, discipline_id = $6, scenario_id = $7, space_id = $8, creator_id = $9
+        WHERE id = $10
+        RETURNING *
+        `,
+        [title, description, startDate, finishDate, isActive, disciplineId, scenarioId, spaceId, creatorId, id]
+    )
+
+    return result.rows
 }
-async function updateDates(startDate, finishDate) {
+async function updateDynamic(id, dates) {
+    const fields = Object.keys(dates)
+    const values = Object.values(dates)
     
+    let query = `UPDATE event SET`
+
+    // Dynamic sets
+    for(let i = 0; i < fields.length; i++) query += ` ${fields[i]} = $${i+1},`;
+
+    // Remove the last character of the string (comma)
+    let finalQuery = query.slice(0, -1)
+
+    // Adding id
+    finalQuery += ` WHERE id = $${fields.length + 1} RETURNING *`
+    values.push(id)
+
+    // Query
+    const result = await pool.query(finalQuery, values)
+
+    return result.rows
 }
 
 // DELETE
@@ -134,5 +174,7 @@ module.exports = {
     getByDate,
     search,
     create,
+    update,
+    updateDynamic,
     remove
 }

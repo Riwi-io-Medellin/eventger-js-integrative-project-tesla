@@ -20,6 +20,12 @@ router.get("/:id", async (req, res, next) => await eventController.getById(req, 
 // Add event
 router.post("/", async (req, res, next) => await eventController.create(req, res, next))
 
+// Update full event
+router.put("/:id", async (req, res, next) => await eventController.update(req, res, next))
+
+// Update partial event
+router.patch("/:id", async (req, res, next) => await eventController.updateDynamic(req, res, next))
+
 // Delete event
 router.delete("/:id", async (req, res, next) => await eventController.remove(req, res, next))
 
