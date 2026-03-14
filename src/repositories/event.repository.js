@@ -39,31 +39,14 @@ async function getRecent() {
 }
 async function search(filters) {
     let query = `SELECT * FROM event WHERE 1=1`
-    const values = []
 
-    let i = 1
+    const fields = Object.keys(filters)
+    const values = Object.values(filters)
 
-    if(filters.isActive) {
-        query += ` AND is_active = $${i++}`
-        values.push(filters.isActive)
-    }
-    if(filters.spaceId) {
-        query += ` AND space_id = $${i++}`
-        values.push(filters.spaceId)
-    }
-    if(filters.scenarioId) {
-        query += ` AND scenario_id = $${i++}`
-        values.push(filters.scenarioId)
-    }
-    if(filters.disciplineId) {
-        query += ` AND discipline_id = $${i++}`
-        values.push(filters.disciplineId)
-    }
-    if(filters.creatorId) {
-        query += ` AND creator_id = $${i++}`
-        values.push(filters.creatorId)
-    }
+    // Adding each where clause
+    for(let i = 0; i < fields.length; i++) query += ` AND ${fields[i]} = $${i+1}`;
 
+    // Doing query
     const result = await pool.query(query, values)
 
     return result.rows
@@ -153,7 +136,7 @@ async function updateDynamic(id, dates) {
     // Adding id
     finalQuery += ` WHERE id = $${fields.length + 1} RETURNING *`
     values.push(id)
-
+    
     // Query
     const result = await pool.query(finalQuery, values)
 

@@ -7,11 +7,11 @@ async function get(req, res, next) {
     try {
         const filters = {}
 
-        if(req.query.isActive) filters.isActive = req.query.isActive;
-        if(req.query.scenarioId) filters.scenarioId = req.query.scenarioId;
-        if(req.query.spaceId) filters.spaceId = req.query.spaceId;
-        if(req.query.disciplineId) filters.disciplineId = req.query.disciplineId;
-        if(req.query.creatorId) filters.creatorId = req.query.creatorId;
+        if(req.query.isActive) filters.is_active = req.query.isActive;
+        if(req.query.scenarioId) filters.scenario_id = req.query.scenarioId;
+        if(req.query.spaceId) filters.space_id = req.query.spaceId;
+        if(req.query.disciplineId) filters.discipline_id = req.query.disciplineId;
+        if(req.query.creatorId) filters.creator_id = req.query.creatorId;
 
         // Calling service
         const response = await eventService.get(filters)
@@ -144,13 +144,13 @@ async function updateDynamic(req, res, next) {
 
         if(query.title) dates.title = query.title;
         if(query.description) dates.description = query.description;
-        if(query.startDate) dates.startDate = query.startDate;
-        if(query.finishDate) dates.finishDate = query.finishDate;
-        if(query.isActive) dates.isActive = query.isActive;
-        if(query.disciplineId) dates.disciplineId = query.disciplineId;
-        if(query.scenarioId) dates.scenarioId = query.scenarioId;
-        if(query.spaceId) dates.spaceId = query.spaceId;
-        if(query.creatorId) dates.creatorId = query.creatorId;
+        if(query.startDate) dates.start_date = query.startDate;
+        if(query.finishDate) dates.finish_date = query.finishDate;
+        if(query.isActive) dates.is_active = query.isActive;
+        if(query.disciplineId) dates.discipline_id = query.disciplineId;
+        if(query.scenarioId) dates.scenario_id = query.scenarioId;
+        if(query.spaceId) dates.space_id = query.spaceId;
+        if(query.creatorId) dates.creator_id = query.creatorId;
 
         // Calling service
         const response = await eventService.updateDynamic(id, dates)
