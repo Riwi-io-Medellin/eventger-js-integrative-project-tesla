@@ -19,7 +19,7 @@ function authToken(req, res, next) {
         // Adding user id to body request
         const tokenVerified = jwt.verify(token)
 
-        req.body = {...req.body, id: tokenVerified.id}
+        req.userId = tokenVerified.id
 
         // Next middleware
         next()
@@ -48,11 +48,11 @@ function authRole(...roles) {
     return async (req, res, next) => { 
         try {
             // Getting the user role
-            const userRole = await userRepository.findById(req.body.id)
-            console.log("USER ROLE: ", userRole)
+            const user = (await userRepository.findById(req.userId))[0]
+            const userRole = (await roleRepository.findById(user[0].role_id))[0]
 
             // Checking if the role doesn't matches with the allowed
-            if(!roles.includes(userRole)) {
+            if(!roles.includes(userRole.name)) {
                 const err = new Error("User hasn't permission for this request")
                 err.status = 401
 
