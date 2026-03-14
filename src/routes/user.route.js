@@ -5,16 +5,16 @@ const routeValidation = require('./../middlewares/routeValidation.middleware')
 const userController = require('./../controllers/user.controller')
 
 // Router Validations Middleware
-router.use(routeValidation.authToken, routeValidation.authRole("admin_gen"))
+//router.use(routeValidation.authToken, routeValidation.authRole("admin_gen"))
 
-// Get all users
-router.get("/", async (req, res, next) => await userController.getAll(req, res, next))
+// Get users with filters or not
+router.get("/", async (req, res, next) => await userController.get(req, res, next))
 
-// Get unactive users
-router.get("/unactive", async (req, res, next) => await userController.getUnactive(req, res, next))
+// Get users by page
+router.get("/page", async (req, res, next) => await userController.getByPage(req, res, next))
 
 // View unique user info
-router.get("/:id", routeValidation.authRole("admin_gen", "visualizer"), async (req, res, next) => await userController.get(req, res, next))
+router.get("/:id", routeValidation.authRole("admin_gen", "visualizer"), async (req, res, next) => await userController.getById(req, res, next))
 
 // Add user
 router.post("/add", async (req, res, next) => await userController.add(req, res, next))
@@ -23,7 +23,7 @@ router.post("/add", async (req, res, next) => await userController.add(req, res,
 router.put("/:id", async (req, res, next) => await userController.update(req, res, next))
 
 // Update active field
-router.patch("/active", async (req, res, next) => await userController.updateActive(req, res, next))
+router.patch("/:id", async (req, res, next) => await userController.updateDynamic(req, res, next))
 
 // Delete user
 router.delete("/:id", async (req, res, next) => await userController.remove(req, res, next))

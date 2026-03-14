@@ -2,7 +2,29 @@ const userRepository = require('./../repositories/user.repository')
 const roleRepository = require('./../repositories/role.repository')
 
 // GET
-async function get(id) {
+/*
+Dynamic search in sql. If there isn't any parameter, it will return a list
+of the first 50 users getted. This is by a WHERE 1=1 clause, that will be always true
+*/
+async function get(filters) {
+    let result;
+
+    // Making query
+    result = await userRepository.search(filters)
+
+    // Returning response
+    return result
+}
+async function getByPage(page, limit) {
+    // Make DB Query
+    const actualPage = (page-1)*limit // SQL starts from 0 | The limit is 20
+
+    const users = await userRepository.find(actualPage, limit)
+
+    // Returning response
+    return users
+}
+async function getById(id) {
     // Make DB Query
     const response = await userRepository.findById(id)[0]
 
@@ -13,31 +35,6 @@ async function get(id) {
 
         throw err
     }
-
-    // Creating user object
-    const user = {
-        id: response.id,
-        name: response.name,
-        email: response.email,
-        departmentId: response.department_id,
-        roleId: response.role_id
-    }
-
-    // Returning response
-    return user
-}
-async function getAll(page, limit) {
-    // Make DB Query
-    const actualPage = (page-1)*limit // SQL starts from 0 | The limit is 20
-
-    const users = await userRepository.find(actualPage, limit)
-
-    // Returning response
-    return users
-}
-async function getUnactive() {
-    // Make DB Query
-    const response = await userRepository.findUnactive()
 
     // Returning response
     return response
@@ -117,12 +114,15 @@ async function update(data, id) {
     // Return response
     return response
 }
-async function updateActive(value, id) {
-    // DB Query
-    const response = await userRepository.updateActive(value, id)
+async function updateDynamic(data, id) {
+    // Checking if there isn't any query
+    if(Object.keys(data).length == 0) return {message: "Nothing to date."};
+
+    // Calling query
+    const results = userRepository.updateDynamic(data, id)
 
     // Returning response
-    return response
+    return results
 }
 
 // DELETE
@@ -142,4 +142,4 @@ async function remove(id) {
     return {response}
 }
 
-module.exports = { add, get, getAll, getUnactive, update, updateActive, remove }
+module.exports = { add, get, getByPage, getById, update, updateDynamic, remove }

@@ -1,16 +1,13 @@
 const pool  = require('./../db/sql')
 
-// Create, find, findById, findByEmail, update, delete
-
 // GET
 async function find(page, limit) {
     // Offset and limit for avoid returning all users data
     const result = await pool.query(`SELECT * FROM "user" LIMIT $1 OFFSET $2`, [limit, page])
-
     return result.rows
 }
 async function findById(id) {
-    const result = await pool.query(`SELECT * FROM "user" WHERE id = $1`, [id])
+    const result = await pool.query(`SELECT name, email, is_active, created_at, department_id, role_id FROM "user" WHERE id = $1`, [id])
 
     return result.rows
 }
@@ -19,9 +16,21 @@ async function findByEmail(email) {
 
     return result.rows
 }
-async function findUnactive() {
-    const result = await pool.query(`SELECT * FROM "user" WHERE is_active = $1`, [false])
+async function search(filters) {
+    let query = `SELECT name, email, is_active, created_at, department_id, role_id FROM "user" WHERE 1=1`
 
+    const fields = Object.keys(filters)
+    const values = Object.values(filters)
+
+    // Adding each where clause
+    for(let i = 0; i < fields.length; i++) query += ` AND ${fields[i]} = $${i+1}`;
+
+    // Adding limit clause
+    const finalQuery = query + ` LIMIT 50` // Limiting it to 50 queries
+
+    // Doing query
+    const result = await pool.query(finalQuery, values)
+    console.log(result.rows)
     return result.rows
 }
 
@@ -62,13 +71,29 @@ async function update(data, id) {
 }
 
 // PATCH
-async function updatePassword(newPassword, userId) {
-    const result = await pool.query(`UPDATE "user" SET password_hash = $1 WHERE id = $2`, [userId, newPassword])
+async function updateDynamic(data) {
+    const fields = Object.keys(data)
+    const values = Object.values(data)
+    
+    let query = `UPDATE user SET`
+
+    // Dynamic sets
+    for(let i = 0; i < fields.length; i++) query += ` ${fields[i]} = $${i+1},`;
+
+    // Remove the last character of the string (comma)
+    let finalQuery = query.slice(0, -1)
+
+    // Adding id
+    finalQuery += ` WHERE id = $${fields.length + 1} RETURNING *`
+    values.push(id)
+    
+    // Query
+    const result = await pool.query(finalQuery, values)
 
     return result.rows
 }
-async function updateActive(value, id) {
-    const result = await pool.query(`UPDATE "user" SET is_active = $1 WHERE id = $2 RETURNING *`, [value, id])
+async function updatePassword(newPassword, userId) {
+    const result = await pool.query(`UPDATE "user" SET password_hash = $1 WHERE id = $2`, [userId, newPassword])
 
     return result.rows
 }
@@ -84,10 +109,10 @@ module.exports = {
     find, 
     findById, 
     findByEmail, 
-    findUnactive, 
+    search, 
     create, 
     update,
+    updateDynamic,
     updatePassword, 
-    updateActive,
     remove 
 }
