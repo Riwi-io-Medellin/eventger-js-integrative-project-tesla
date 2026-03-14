@@ -1,6 +1,8 @@
 const userRepository = require('./../repositories/user.repository')
 const roleRepository = require('./../repositories/role.repository')
 
+const hash = require("./../utils/hash")
+
 // GET
 /*
 Dynamic search in sql. If there isn't any parameter, it will return a list
@@ -26,7 +28,7 @@ async function getByPage(page, limit) {
 }
 async function getById(id) {
     // Make DB Query
-    const response = await userRepository.findById(id)[0]
+    const response = await userRepository.findById(id)
 
     // Checking the user exists
     if(!response) {
@@ -37,7 +39,7 @@ async function getById(id) {
     }
 
     // Returning response
-    return response
+    return response[0]
 }
 
 // POST
@@ -87,18 +89,8 @@ async function add(data) {
 async function update(data, id) {
     const { name, email, departmentId, roleName, isActive } = data
 
-    // Verify that the email is registered
-    const emailFound = await userRepository.findByEmail(email)
-
-    if(emailFound.length == 0) {
-        const error = Error("That email user isn't registered.")
-        error.status = 401
-
-        throw error
-    }
-
     // Asign role ID
-    const roleId =  await roleRepository.findByName(roleName).id
+    const roleId =  (await roleRepository.findByName(roleName)).id
 
     // Save in the DB
     const updatedUser = {
@@ -117,6 +109,13 @@ async function update(data, id) {
 async function updateDynamic(data, id) {
     // Checking if there isn't any query
     if(Object.keys(data).length == 0) return {message: "Nothing to date."};
+
+    // Converting role name into id (if it exists)
+    if(data?.role_id) {
+        const userRole = (await roleRepository.findByName(data.role_id)).id
+
+        data.role_id = userRole;
+    }
 
     // Calling query
     const results = userRepository.updateDynamic(data, id)
@@ -139,7 +138,7 @@ async function remove(id) {
     }
 
     // Returning
-    return {response}
+    return response
 }
 
 module.exports = { add, get, getByPage, getById, update, updateDynamic, remove }

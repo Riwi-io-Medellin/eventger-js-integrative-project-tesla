@@ -37,20 +37,6 @@ async function getRecent() {
 
     return result.rows
 }
-async function search(filters) {
-    let query = `SELECT * FROM event WHERE 1=1`
-
-    const fields = Object.keys(filters)
-    const values = Object.values(filters)
-
-    // Adding each where clause
-    for(let i = 0; i < fields.length; i++) query += ` AND ${fields[i]} = $${i+1}`;
-
-    // Doing query
-    const result = await pool.query(query, values)
-
-    return result.rows
-}
 async function getById(id) {
     const result = await pool.query(
         `SELECT * FROM event WHERE id = $1`,
@@ -64,6 +50,20 @@ async function getByDate(date) {
         `SELECT * FROM event WHERE start_date >= $1 AND finish_date <= $1`,
         [date]
     )
+
+    return result.rows
+}
+async function search(filters) {
+    let query = `SELECT * FROM event WHERE 1=1`
+
+    const fields = Object.keys(filters)
+    const values = Object.values(filters)
+
+    // Adding each where clause
+    for(let i = 0; i < fields.length; i++) query += ` AND ${fields[i]} = $${i+1}`;
+
+    // Doing query
+    const result = await pool.query(query, values)
 
     return result.rows
 }

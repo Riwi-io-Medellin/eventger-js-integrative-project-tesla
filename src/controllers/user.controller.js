@@ -126,43 +126,18 @@ async function updateDynamic(req, res, next) {
             throw err
         }
 
-        const { query } = req
+        const { body } = req
         const filters = {}
 
         // Validating what params has been sent
-        if(query.name) filters.name = query.name;
-        if(query.email) filters.email = query.email;
-        if(query.isActive) filters.is_active = query.isActive;
-        if(query.departmentId) filters.department_id = query.departmentId;
-        if(query.roleId) filters.role_id = query.roleId;
+        if(body.name) filters.name = body.name;
+        if(body.email) filters.email = body.email;
+        if(body.isActive) filters.is_active = body.isActive;
+        if(body.departmentId) filters.department_id = body.departmentId;
+        if(body.roleName) filters.role_id = body.roleName;
 
         // Calling service
         const response = await userService.updateDynamic(filters, id)
-
-        // Returning response
-        return res.status(200).json(response)
-    } catch(err) {
-        next(err)
-    }
-}
-async function updateActive(req, res, next) {
-    try {
-        const { isActive } = req.body
-        const { id } = req.query
-
-        // Validating parameters
-        validate.requiredFields(req.body, "isActive")
-
-        // Validating ID
-        if(!id) {
-            const err = new Error("Missing id query")
-            err.status = 400
-
-            throw err
-        }
-
-        // Calling service
-        const response = await userService.updateActive(isActive, id)
 
         // Returning response
         return res.status(200).json(response)

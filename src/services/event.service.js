@@ -41,6 +41,13 @@ async function create(data) {
     validate.date(startDate)
     validate.date(finishDate)
 
+    // Checking the schedule restrictions
+    validate.dateSchedule(startDate)
+    validate.dateSchedule(finishDate)
+
+    // Checking the minimum time (1 hour)
+    validate.dateMinimum(startDate, finishDate)
+
     // Checking the date isn't busy
     const eventConflict = await eventRepository.checkDates(startDate, finishDate)
 

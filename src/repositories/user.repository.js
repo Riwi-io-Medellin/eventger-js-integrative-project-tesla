@@ -3,11 +3,11 @@ const pool  = require('./../db/sql')
 // GET
 async function find(page, limit) {
     // Offset and limit for avoid returning all users data
-    const result = await pool.query(`SELECT * FROM "user" LIMIT $1 OFFSET $2`, [limit, page])
+    const result = await pool.query(`SELECT id, name, email, is_active, created_at, department_id, role_id FROM "user" LIMIT $1 OFFSET $2`, [limit, page])
     return result.rows
 }
 async function findById(id) {
-    const result = await pool.query(`SELECT name, email, is_active, created_at, department_id, role_id FROM "user" WHERE id = $1`, [id])
+    const result = await pool.query(`SELECT id, name, email, is_active, created_at, department_id, role_id FROM "user" WHERE id = $1`, [id])
 
     return result.rows
 }
@@ -17,7 +17,7 @@ async function findByEmail(email) {
     return result.rows
 }
 async function search(filters) {
-    let query = `SELECT name, email, is_active, created_at, department_id, role_id FROM "user" WHERE 1=1`
+    let query = `SELECT id, name, email, is_active, created_at, department_id, role_id FROM "user" WHERE 1=1`
 
     const fields = Object.keys(filters)
     const values = Object.values(filters)
@@ -63,7 +63,7 @@ async function update(data, id) {
             role_id = $4, 
             is_active = $5 
         WHERE id = $6
-        RETURNING *`,
+        RETURNING id, name, email, is_active, created_at, department_id, role_id`,
         [name, email, departmentId, roleId, isActive, id]
     )
 
@@ -71,11 +71,11 @@ async function update(data, id) {
 }
 
 // PATCH
-async function updateDynamic(data) {
+async function updateDynamic(data, id) {
     const fields = Object.keys(data)
     const values = Object.values(data)
     
-    let query = `UPDATE user SET`
+    let query = `UPDATE "user" SET`
 
     // Dynamic sets
     for(let i = 0; i < fields.length; i++) query += ` ${fields[i]} = $${i+1},`;
@@ -84,7 +84,7 @@ async function updateDynamic(data) {
     let finalQuery = query.slice(0, -1)
 
     // Adding id
-    finalQuery += ` WHERE id = $${fields.length + 1} RETURNING *`
+    finalQuery += ` WHERE id = $${fields.length + 1} RETURNING id, name, email, is_active, created_at, department_id, role_id `
     values.push(id)
     
     // Query

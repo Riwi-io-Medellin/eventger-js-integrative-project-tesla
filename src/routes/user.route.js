@@ -5,7 +5,7 @@ const routeValidation = require('./../middlewares/routeValidation.middleware')
 const userController = require('./../controllers/user.controller')
 
 // Router Validations Middleware
-//router.use(routeValidation.authToken, routeValidation.authRole("admin_gen"))
+router.use(routeValidation.authToken, routeValidation.authRole("admin_gen"))
 
 // Get users with filters or not
 router.get("/", async (req, res, next) => await userController.get(req, res, next))
@@ -14,10 +14,10 @@ router.get("/", async (req, res, next) => await userController.get(req, res, nex
 router.get("/page", async (req, res, next) => await userController.getByPage(req, res, next))
 
 // View unique user info
-router.get("/:id", routeValidation.authRole("admin_gen", "visualizer"), async (req, res, next) => await userController.getById(req, res, next))
+router.get("/:id", routeValidation.authRole("admin_gen", "admin_spa", "event_creator", "visualizer"), async (req, res, next) => await userController.getById(req, res, next))
 
 // Add user
-router.post("/add", async (req, res, next) => await userController.add(req, res, next))
+router.post("/", async (req, res, next) => await userController.add(req, res, next))
 
 // Update user info
 router.put("/:id", async (req, res, next) => await userController.update(req, res, next))
