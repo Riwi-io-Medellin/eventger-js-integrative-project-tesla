@@ -5,7 +5,8 @@ const jwt = require("./../utils/jwt")
 
 function authToken(req, res, next) {
     try {
-        const { token } = req.body
+        // Give me just the ["Bearer", "TOKEN"] token paramether
+        const token = req.headers.authorization?.splice(" ")[1]
 
         // Checking that the token was sent
         if(!token) {
