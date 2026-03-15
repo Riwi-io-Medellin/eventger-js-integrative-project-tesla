@@ -1,54 +1,99 @@
 const {getEvents, getGoals, getCompletedEvents, getEventsAllDepartments,
-    getGoalsAllDepartments}= require('../repositories/dashboard.repository.js');
+    getGoalsAllDepartments, getEventsDiscipline, getGoalDiscipline}= require('../repositories/dashboard.repository.js');
 
-// 1. General metrics
+async function generalMetricsService(year){
+    // Get all goals of the year
+    const goals = await getGoals(year)
+    let totalGoals = goals.rows[0].total_goal
 
-async function genMetricsService(year){
-    const goals= await getGoals(year)
-    const totalEventsGoal = goals.rowCount
-    
     const events = await getCompletedEvents(year)
-    const totalEventsCompleted =  events.rowCount
+    const totalEvents = events.rowCount
 
-    const pendingEvents = totalEventsGoal-totalEventsCompleted
-    let percentageCompleted; 
+    let percentage=0
+    if (totalGoals>0){
+        percentage = (totalEvents/totalGoals)*100
+    }
+
+    const results = {"total_goal": Number(totalGoals),
+                    "completed_events": totalEvents,
+                    "pending_events": totalGoals-totalEvents,
+                    "percentage_advance":percentage }
+    return results;
+}
+
+async function generalMetrics2Service(year){
+    const goals = await getGoalsAllDepartments(year)
+    const goalsDep = goals.rows
     
-    if (totalEventsGoal!=0){
-        percentageCompleted= (totalEventsCompleted/ totalEventsGoal)*100
-    }
+    const events = await getEventsAllDepartments(year)
+    const eventsDep = events.rows
 
-    const response = {"total_events_goal": totalEventsGoal,
-        "total_events_completed": totalEventsCompleted,
-        "pending_events": pendingEvents,
-        "percentage_of_events_completed": percentageCompleted
-    }
+    let result ={}
+    
 
-    return response;
+    for (let i=0; goalsDep.length>i; i++){
+        const element = goalsDep[i]
+        let evCompleted = 0
+
+        for(let j=0; eventsDep.length>j; j++){
+
+            if (element.name === eventsDep[j].name){
+                evCompleted= eventsDep[j].events_per_department
+            }
+        }
+
+        result[element.name] = {
+            "name": element.name,
+            "department_goals": Number(element.goals_per_department),
+            "events_completed": Number(evCompleted)
+        }
+    }
+    return result;
 }
 
-async function genMetricsDepartment(year){
-    const goalsDep= await getGoalsAllDepartments(year)
-    const eventsDep= await getEventsAllDepartments(year)
-    console.log(goalsDep.rows)
-    console.log(eventsDep.rows)
+async function filter(year){
+    const goals = await getGoalDiscipline(year)
+    const goalsDep = goals.rows
+    
+    const events = await getEventsDiscipline(year)
+    const eventsDep = events.rows
+    
 
-    let response = {}
+    let result ={}
+    
 
-    for (let i=0; goalsDep.rowCount>0; i++){
-        let department = goalsDep.rows[i].name
-        let goalsPerDep= goalsDep.rows[i].goals_per_department
-        let eventsComp = 0
+    for (let i=0; goalsDep.length>i; i++){
+        const element = goalsDep[i]
+        let discipline = {}
+
+        let evCompleted = 0
+        let evPending = 0
+        let percentage = 0
+
+        for(let j=0; eventsDep.length>j; j++){
+            const element2 = eventsDep[j]
+
+            if (element.department_name === element2.department_name && element.discipline_name === element2.discipline_name){
+                evCompleted= element2.events_per_discipline
+                evPending = element.goals_per_discipline- evCompleted
+                percentage = (evCompleted/element.goals_per_discipline)*100
+            }
+        }
         
-        for (let j=0; eventsDep.rowCount>0; j++){
-            if (goalsDep.rows[i].department_id === eventsDep.rows[j].department_id){
-                eventsComp =eventsDep.rows[j].events_per_department
-            }}
-        response.department ={"department": department, "goal": goalsPerDep, "events_completed": eventsComp}
-        
+        if (!result[element.department_name]) {
+            result[element.department_name] = []
+        }
+
+        result[element.department_name].push({
+            "discipline_name": element.discipline_name,
+            "goals_per_discipline": element.goals_per_discipline,
+            "evenst_completed": evCompleted,
+            "pending_events": evPending,
+            "percentage": percentage
+        })
     }
-    return response;      
+    return result;
 }
 
 
-
-module.exports = {genMetricsService, genMetricsDepartment}
+module.exports = {generalMetricsService, generalMetrics2Service, filter}
