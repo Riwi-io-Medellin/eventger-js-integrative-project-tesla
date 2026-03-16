@@ -14,13 +14,15 @@ const ICONS = {
 };
 
 // qué puede ver cada rol — admin_gen es excepción, ve todo (lo manejo abajo)
+// sub:true = ítem indentado debajo de su padre
 const NAV_ITEMS = [
-  { label: 'Muro',      page: 'muro',      href: '#/muro',      icon: ICONS.muro,      roles: ['admin_gen','admin_spa','event_creator','visualizer'] },
-  { label: 'Dashboard', page: 'dashboard', href: '#/dashboard', icon: ICONS.dashboard, roles: ['admin_spa','event_creator','visualizer'] },
-  { label: 'Usuarios',  page: 'users',     href: '#/users',     icon: ICONS.users,     roles: ['admin_gen'] },
-  { label: 'Eventos',   page: 'events',    href: '#/events',    icon: ICONS.events,    roles: ['admin_spa','event_creator'] },
-  { label: 'Espacios',  page: 'spaces',    href: '#/espaces',   icon: ICONS.spaces,    roles: ['admin_spa'] },
-  { label: 'Mi Perfil', page: 'profile',   href: '#/profile',   icon: ICONS.profile,   roles: ['admin_gen','admin_spa','event_creator','visualizer'] },
+  { label: 'Muro',        page: 'muro',      href: '#/muro',      icon: ICONS.muro,      roles: ['admin_gen','admin_spa','event_creator','visualizer'] },
+  { label: 'Dashboard',   page: 'dashboard', href: '#/dashboard', icon: ICONS.dashboard, roles: ['admin_spa','event_creator','visualizer'] },
+  { label: 'Usuarios',    page: 'users',     href: '#/users',     icon: ICONS.users,     roles: ['admin_gen'] },
+  { label: 'Eventos',     page: 'events',    href: '#/events',    icon: ICONS.events,    roles: ['admin_spa','event_creator'] },
+  { label: 'Espacios',    page: 'spaces',    href: '#/espaces',   icon: ICONS.spaces,    roles: ['admin_spa'] },
+  { label: 'Escenarios',  page: 'complex',   href: '#/complex',   icon: null,            roles: ['admin_spa'], sub: true },
+  { label: 'Mi Perfil',   page: 'profile',   href: '#/profile',   icon: ICONS.profile,   roles: ['admin_gen','admin_spa','event_creator','visualizer'] },
 ];
 
 export function buildSidebar(activePage = '') {
@@ -35,10 +37,21 @@ export function buildSidebar(activePage = '') {
     ? NAV_ITEMS
     : NAV_ITEMS.filter((item) => item.roles.includes(role));
 
-  const links = visible.map((item) => `
-    <a class="nav-item${activePage === item.page ? ' active' : ''}" href="${item.href}">
+  const links = visible.map((item) => {
+    const isActive = activePage === item.page;
+    if (item.sub) {
+      return `
+    <a class="nav-item${isActive ? ' active' : ''}" href="${item.href}"
+      style="padding-left:2.75rem;font-size:0.8125rem;">
+      <span style="width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;"></span>
+      ${item.label}
+    </a>`;
+    }
+    return `
+    <a class="nav-item${isActive ? ' active' : ''}" href="${item.href}">
       ${item.icon}${item.label}
-    </a>`).join('');
+    </a>`;
+  }).join('');
 
   return `
   <aside class="dash-sidebar" id="ev-sidebar">
@@ -71,15 +84,42 @@ export function buildSidebar(activePage = '') {
   </aside>`;
 }
 
-// engancho el logout y el botón hamburguesa — llamar esto después de pintar el HTML
+// header compartido: título + avatar + nombre + logout
+export function buildHeader(title) {
+  const session  = getSession();
+  const name     = session?.name || 'Usuario';
+  const initials = getInitials(name);
+  const roleName = getRoleName(session?.role || 'visualizer');
+  return `
+  <header class="ev-header" style="height:3.5rem;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:50;">
+    <button id="ev-menu-btn" class="show-mobile" style="background:none;border:none;cursor:pointer;color:#64748b;padding:0.25rem;display:flex;">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <p style="flex:1;font-size:1rem;font-weight:700;color:#0f172a;margin:0;">${title}</p>
+    <div style="display:flex;align-items:center;gap:0.625rem;">
+      <div style="width:2rem;height:2rem;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;font-weight:700;flex-shrink:0;">${initials}</div>
+      <div class="hide-mobile">
+        <p style="font-size:0.8125rem;font-weight:600;color:#1e293b;margin:0;line-height:1.2;">${name.split(' ')[0]} ${name.split(' ')[1]?.[0] || ''}.</p>
+        <p style="font-size:0.7rem;color:#64748b;margin:0;">${roleName}</p>
+      </div>
+      <button id="header-logout-btn" title="Cerrar sesión"
+        style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:0.375rem;border-radius:0.5rem;display:flex;align-items:center;transition:color 0.15s,background 0.15s;"
+        onmouseover="this.style.color='#ef4444';this.style.background='#fef2f2'"
+        onmouseout="this.style.color='#94a3b8';this.style.background='none'">
+        ${ICONS.logout}
+      </button>
+    </div>
+  </header>`;
+}
+
+// engancho el logout (sidebar + header) y el botón hamburguesa
 export function bindSidebarLogout() {
-  const btn = document.getElementById('sidebar-logout-btn');
-  if (btn) {
-    btn.addEventListener('click', () => {
+  ['sidebar-logout-btn', 'header-logout-btn'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', () => {
       clearSession();
       window.location.hash = '#/login';
     });
-  }
+  });
 
   // hamburguesa mobile
   const menuBtn = document.getElementById('ev-menu-btn');

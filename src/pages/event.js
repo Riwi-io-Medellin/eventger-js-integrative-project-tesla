@@ -2,6 +2,7 @@
 import { createCalendar } from "../components/calendar.js";
 import { buildSidebar, bindSidebarLogout } from "../utils/layout.js";
 import { getSession, getInitials, getRoleName, clearSession } from "../utils/session.js";
+import { toast } from "../utils/toast.js";
 
 // cargo Sonner desde CDN si todavía no está en window
 function loadSonner() {
@@ -16,39 +17,6 @@ function loadSonner() {
     script.onerror = resolve;
     document.head.appendChild(script);
   });
-}
-function toast(type, message) {
-  if (window.Sonner?.toast) {
-    if (type === "success")
-      window.Sonner.toast.success(message, { duration: 3500 });
-    else if (type === "error")
-      window.Sonner.toast.error(message, { duration: 4000 });
-    else window.Sonner.toast.warning(message, { duration: 4000 });
-    return;
-  }
-  // fallback manual si Sonner no cargó
-  let c = { bg: "#f0fdf4", border: "#bbf7d0", color: "#16a34a", icon: "✓" };
-  if (type === "error")
-    c = { bg: "#fef2f2", border: "#fecaca", color: "#dc2626", icon: "✕" };
-  if (type === "warning")
-    c = { bg: "#fefce8", border: "#fef08a", color: "#ca8a04", icon: "⚠" };
-  let box = document.getElementById("ev-toast-box");
-  if (!box) {
-    box = document.createElement("div");
-    box.id = "ev-toast-box";
-    box.style.cssText =
-      "position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;";
-    document.body.appendChild(box);
-  }
-  const t = document.createElement("div");
-  t.style.cssText = `display:flex;align-items:center;gap:0.75rem;background:${c.bg};border:1.5px solid ${c.border};color:${c.color};border-radius:0.75rem;padding:0.875rem 1.25rem;font-size:0.875rem;font-weight:600;font-family:'DM Sans',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:16rem;max-width:24rem;animation:toastIn 0.3s cubic-bezier(0.22,1,0.36,1);`;
-  t.innerHTML = `<span>${c.icon}</span><span>${message}</span>`;
-  box.appendChild(t);
-  setTimeout(() => {
-    t.style.opacity = "0";
-    t.style.transition = "opacity 0.3s";
-    setTimeout(() => t.remove(), 300);
-  }, 3500);
 }
 
 if (!document.getElementById("eventos-style")) {
@@ -426,22 +394,26 @@ function checkAvailability(start, finish, spaceId, excludeId = null) {
 function renderSidebar() {
   return buildSidebar("events");
 }
-// el coordinador solo edita los suyos y con 3+ días de anticipación
+// admin_gen puede editar cualquier evento
+// admin_spa solo los que él mismo creó (no toca los del coordinador)
+// coordinador: solo los suyos y con 3+ días de anticipación
 function canEdit(ev) {
   const session = getSession();
   const role = session?.role || "visualizer";
-  if (role === "admin_gen" || role === "admin_spa") return true;
+  if (role === "admin_gen") return true;
+  if (role === "admin_spa") return ev.creator_id === session.name;
   if (role !== "event_creator") return false;
   if (ev.creator_id !== session.name) return false;
   const daysUntil = (new Date(ev.start_date) - Date.now()) / 86400000;
   return daysUntil > 3;
 }
 
-// para eliminar necesita 7+ días de margen
+// misma lógica que canEdit pero con 7 días para eliminar
 function canDelete(ev) {
   const session = getSession();
   const role = session?.role || "visualizer";
-  if (role === "admin_gen" || role === "admin_spa") return true;
+  if (role === "admin_gen") return true;
+  if (role === "admin_spa") return ev.creator_id === session.name;
   if (role !== "event_creator") return false;
   if (ev.creator_id !== session.name) return false;
   const daysUntil = (new Date(ev.start_date) - Date.now()) / 86400000;
@@ -897,6 +869,12 @@ function renderPage() {
             <p style="font-size:0.8125rem;font-weight:600;color:#1e293b;margin:0;line-height:1.2;">${sesName}</p>
             <p style="font-size:0.7rem;color:#64748b;margin:0;">${sesRole}</p>
           </div>
+          <button id="header-logout-btn" title="Cerrar sesión"
+            style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:0.375rem;border-radius:0.5rem;display:flex;align-items:center;transition:color 0.15s,background 0.15s;"
+            onmouseover="this.style.color='#ef4444';this.style.background='#fef2f2'"
+            onmouseout="this.style.color='#94a3b8';this.style.background='none'">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
         </div>
       </header>
       <div class="ev-main-content" style="flex:1;">

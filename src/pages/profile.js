@@ -1,6 +1,6 @@
 // src/pages/profile.js
 
-import { buildSidebar, bindSidebarLogout } from '../utils/layout.js';
+import { buildSidebar, buildHeader, bindSidebarLogout } from '../utils/layout.js';
 import { getSession, getInitials, getRoleName } from '../utils/session.js';
 
 if (!document.getElementById('profile-style')) {
@@ -41,13 +41,14 @@ if (!document.getElementById('profile-style')) {
 }
 
 // 🔌 estos vendrán del backend cuando conectemos la API
+// scenario = complejo/escenario deportivo; space = el espacio dentro de ese escenario
 const MOCK_EVENTS = [
-  { id:'1', title:'Torneo Interbarrial de Fútbol',  discipline:'Fútbol',      status:'programado', start_date:'2026-03-05', space:'Estadio Municipal',  creator:'Sara Calderón' },
-  { id:'2', title:'Liga de Baloncesto Juvenil',     discipline:'Baloncesto',   status:'activo',     start_date:'2026-03-01', space:'Coliseo Central',    creator:'Sara Calderón' },
-  { id:'3', title:'Copa de Voleibol Playa',         discipline:'Voleibol',     status:'activo',     start_date:'2026-02-28', space:'Cancha de Playa',    creator:'Jose David Henao' },
-  { id:'4', title:'Campeonato de Natación',         discipline:'Natación',     status:'finalizado', start_date:'2026-02-20', space:'Piscina Olímpica',   creator:'Jose David Henao' },
-  { id:'5', title:'Festival de Atletismo',          discipline:'Atletismo',    status:'programado', start_date:'2026-03-25', space:'Pista Atlética',     creator:'Ana García' },
-  { id:'6', title:'Copa de Microfútbol',            discipline:'Microfútbol',  status:'activo',     start_date:'2026-03-10', space:'Cancha Múltiple Sur', creator:'Ana García' },
+  { id:'1', title:'Torneo Interbarrial de Fútbol',  discipline:'Fútbol',      status:'programado', start_date:'2026-03-05', scenario:'Unidad Deportiva Atanasio Girardot',    space:'Estadio Atanasio Girardot',  creator:'Sara Calderón' },
+  { id:'2', title:'Liga de Baloncesto Juvenil',     discipline:'Baloncesto',   status:'activo',     start_date:'2026-03-01', scenario:'Polideportivo Sur',                     space:'Coliseo Iván de Bedout',     creator:'Sara Calderón' },
+  { id:'3', title:'Copa de Voleibol',               discipline:'Voleibol',     status:'activo',     start_date:'2026-02-28', scenario:'Polideportivo Sur',                     space:'Cancha de Voleibol',         creator:'Jose David Henao' },
+  { id:'4', title:'Campeonato de Natación',         discipline:'Natación',     status:'finalizado', start_date:'2026-02-20', scenario:'Complejo Acuático Julio César Noriega', space:'Piscina Olímpica 50m',       creator:'Jose David Henao' },
+  { id:'5', title:'Festival de Atletismo',          discipline:'Atletismo',    status:'programado', start_date:'2026-03-25', scenario:'Unidad Deportiva Atanasio Girardot',    space:'Pista Atlética Principal',   creator:'Ana García' },
+  { id:'6', title:'Copa de Microfútbol',            discipline:'Microfútbol',  status:'activo',     start_date:'2026-03-10', scenario:'Unidad Deportiva María Paz',            space:'Cancha Múltiple Sur',        creator:'Ana García' },
 ];
 
 // colores de los chips según la disciplina
@@ -110,8 +111,11 @@ function renderEventCard(ev) {
         ${fmtDate(ev.start_date)}
       </div>
       <div style="display:flex;align-items:center;gap:0.4rem;color:#64748b;font-size:0.8125rem;">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="13" height="13"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        ${ev.space}
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="13" height="13"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        ${ev.scenario}
+      </div>
+      <div style="display:flex;align-items:center;gap:0.4rem;color:#94a3b8;font-size:0.75rem;padding-left:1.0625rem;">
+        › ${ev.space}
       </div>
     </div>
   </div>`;
@@ -143,24 +147,7 @@ function render() {
     ${buildSidebar('profile')}
 
     <div class="dash-main">
-      <!-- Header -->
-      <header style="background:#fff;border-bottom:1px solid #e2e8f0;padding:0.875rem 1.25rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:50;">
-        <!-- Botón hamburguesa (solo mobile) -->
-        <button id="ev-menu-btn" class="show-mobile" style="background:none;border:none;cursor:pointer;color:#475569;padding:0.25rem;display:flex;">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-        </button>
-        <div style="flex:1;">
-          <p style="font-size:1rem;font-weight:700;color:#0f172a;margin:0;">Perfil</p>
-        </div>
-        <!-- Avatar del usuario -->
-        <div style="display:flex;align-items:center;gap:0.625rem;">
-          <div style="width:2rem;height:2rem;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;font-weight:700;">${initials}</div>
-          <div class="hide-mobile">
-            <p style="font-size:0.8125rem;font-weight:600;color:#1e293b;margin:0;">${name.split(' ')[0]} ${name.split(' ')[1]?.[0] || ''}.</p>
-            <p style="font-size:0.7rem;color:#64748b;margin:0;">${getRoleName(role)}</p>
-          </div>
-        </div>
-      </header>
+      ${buildHeader('Perfil')}
 
       <!-- Contenido -->
       <main class="ev-main-content">
@@ -169,10 +156,10 @@ function render() {
           <!-- Tarjeta de perfil -->
           <div class="prof-card">
             <!-- Cover con gradiente -->
-            <div style="height:5rem;background:linear-gradient(135deg,#0d9488 0%,#0369a1 50%,#1d4ed8 100%);"></div>
+            <div style="height:5rem;background:linear-gradient(135deg,#1d4ed8 0%,#2563eb 60%,#3b82f6 100%);"></div>
             <!-- Avatar -->
             <div style="display:flex;flex-direction:column;align-items:center;padding:0 1.25rem 1.25rem;position:relative;">
-              <div style="width:4.5rem;height:4.5rem;border-radius:50%;background:linear-gradient(135deg,#0d9488,#0369a1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;font-weight:700;border:3px solid #fff;margin-top:-2.25rem;box-shadow:0 4px 12px rgba(0,0,0,0.12);">${initials}</div>
+              <div style="width:4.5rem;height:4.5rem;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;font-weight:700;border:3px solid #fff;margin-top:-2.25rem;box-shadow:0 4px 12px rgba(37,99,235,0.2);">${initials}</div>
               <h2 style="font-size:1.125rem;font-weight:700;color:#1e293b;margin:0.75rem 0 0.125rem;text-align:center;">${name}</h2>
               <p style="font-size:0.8375rem;color:#64748b;margin:0 0 0.75rem;text-align:center;">${email}</p>
               <span style="padding:0.2rem 0.75rem;border-radius:9999px;font-size:0.75rem;font-weight:600;background:${badge.bg};color:${badge.color};">${badge.label}</span>

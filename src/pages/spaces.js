@@ -1,5 +1,6 @@
 // src/pages/spaces.js
-import { buildSidebar, bindSidebarLogout } from "../utils/layout.js";
+import { buildSidebar, buildHeader, bindSidebarLogout } from "../utils/layout.js";
+import { toast } from "../utils/toast.js";
 
 if (!document.getElementById("eventos-style")) {
   const s = document.createElement("style");
@@ -61,30 +62,6 @@ if (!document.getElementById("eventos-style")) {
   document.head.appendChild(s);
 }
 
-function spToast(type, message) {
-  let c = { bg: "#f0fdf4", border: "#bbf7d0", color: "#16a34a", icon: "✓" };
-  if (type === "error")
-    c = { bg: "#fef2f2", border: "#fecaca", color: "#dc2626", icon: "✕" };
-  if (type === "warning")
-    c = { bg: "#fefce8", border: "#fef08a", color: "#ca8a04", icon: "⚠" };
-  let box = document.getElementById("sp-toast-box");
-  if (!box) {
-    box = document.createElement("div");
-    box.id = "sp-toast-box";
-    box.style.cssText =
-      "position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;";
-    document.body.appendChild(box);
-  }
-  const t = document.createElement("div");
-  t.style.cssText = `display:flex;align-items:center;gap:0.75rem;background:${c.bg};border:1.5px solid ${c.border};color:${c.color};border-radius:0.75rem;padding:0.875rem 1.25rem;font-size:0.875rem;font-weight:600;font-family:'DM Sans',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:16rem;max-width:24rem;animation:toastIn 0.3s cubic-bezier(0.22,1,0.36,1);`;
-  t.innerHTML = `<span>${c.icon}</span><span>${message}</span>`;
-  box.appendChild(t);
-  setTimeout(() => {
-    t.style.opacity = "0";
-    t.style.transition = "opacity 0.3s";
-    setTimeout(() => t.remove(), 300);
-  }, 3500);
-}
 
 // 🔌 await api.getScenarios()
 let SP_SCENARIOS = [
@@ -334,15 +311,7 @@ function renderSpPage() {
   <div class="dash-layout">
     ${renderSpSidebar()}
     <div class="dash-main">
-      <!-- Topbar mobile -->
-      <div class="ev-header" style="height:3.5rem;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-        <button class="show-mobile" onclick="document.getElementById('sp-sidebar').classList.toggle('open')" style="background:none;border:none;cursor:pointer;color:#475569;padding:0.25rem;display:flex;align-items:center;">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-        </button>
-        <span class="show-mobile" style="font-weight:700;color:#1e293b;font-size:0.9375rem;">Espacios</span>
-        <div style="width:22px;" class="show-mobile"></div>
-      </div>
-
+      ${buildHeader('Espacios')}
       <div class="ev-main-content" style="flex:1;">
         <!-- Header -->
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
@@ -436,10 +405,10 @@ window.saveSpModal = function () {
   if (spModal.type === "edit" && spSelected) {
     const idx = SP_SPACES.findIndex((s) => s.id === spSelected.id);
     SP_SPACES[idx] = { ...SP_SPACES[idx], name, description: desc, status, scenario_id };
-    spToast("success", "Espacio actualizado correctamente.");
+    toast("success", "Espacio actualizado correctamente.");
   } else {
     SP_SPACES.push({ id: genId("sp"), name, description: desc, status, scenario_id });
-    spToast("success", "Espacio creado correctamente.");
+    toast("success", "Espacio creado correctamente.");
   }
 
   spModal = null;
@@ -450,7 +419,7 @@ window.saveSpModal = function () {
 window.confirmDeleteSpace = function () {
   if (!spSelected) return;
   SP_SPACES = SP_SPACES.filter((s) => s.id !== spSelected.id);
-  spToast("success", `"${spSelected.name}" eliminado.`);
+  toast("success", `"${spSelected.name}" eliminado.`);
   spModal = null;
   spSelected = null;
   renderSpPage();
@@ -474,7 +443,7 @@ window.toggleSpStatus = function (id) {
   const newStatus = SP_SPACES[idx].status === "activo" ? "inactivo" : "activo";
   SP_SPACES[idx] = { ...SP_SPACES[idx], status: newStatus };
   // 🔌 await api.patch(`/spaces/${id}/status`, { status: newStatus })
-  spToast("success", `Espacio ${newStatus === "activo" ? "activado" : "desactivado"}.`);
+  toast("success", `Espacio ${newStatus === "activo" ? "activado" : "desactivado"}.`);
   renderSpPage();
 };
 
@@ -654,15 +623,7 @@ function renderScPage() {
   <div class="dash-layout">
     ${renderSpSidebar()}
     <div class="dash-main">
-      <!-- Topbar mobile -->
-      <div class="ev-header" style="height:3.5rem;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-        <button class="show-mobile" onclick="document.getElementById('sp-sidebar').classList.toggle('open')" style="background:none;border:none;cursor:pointer;color:#475569;padding:0.25rem;display:flex;align-items:center;">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-        </button>
-        <span class="show-mobile" style="font-weight:700;color:#1e293b;font-size:0.9375rem;">Escenarios</span>
-        <div style="width:22px;" class="show-mobile"></div>
-      </div>
-
+      ${buildHeader('Escenarios')}
       <div class="ev-main-content" style="flex:1;">
         <!-- Header -->
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
@@ -735,10 +696,10 @@ window.saveScModal = function () {
   if (scModal.type === "edit" && scSelected) {
     const idx = SP_SCENARIOS.findIndex((s) => s.id === scSelected.id);
     SP_SCENARIOS[idx] = { ...SP_SCENARIOS[idx], name, location };
-    spToast("success", "Escenario actualizado correctamente.");
+    toast("success", "Escenario actualizado correctamente.");
   } else {
     SP_SCENARIOS.push({ id: genId("sc"), name, location });
-    spToast("success", "Escenario creado correctamente.");
+    toast("success", "Escenario creado correctamente.");
   }
 
   scModal = null;
@@ -749,7 +710,7 @@ window.saveScModal = function () {
 window.confirmDeleteScenario = function () {
   if (!scSelected) return;
   SP_SCENARIOS = SP_SCENARIOS.filter((s) => s.id !== scSelected.id);
-  spToast("success", `"${scSelected.name}" eliminado.`);
+  toast("success", `"${scSelected.name}" eliminado.`);
   scModal = null;
   scSelected = null;
   renderScPage();

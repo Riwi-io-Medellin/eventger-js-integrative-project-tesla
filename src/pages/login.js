@@ -239,7 +239,8 @@ function bindEvents() {
       const userData = mockUsers[em] || { id:'u-4', name:'Luis Martínez', role:'visualizer', department:'Fomento Deportivo', createdAt:'2025-03-10' };
       setSession({ ...userData, email: emailInput.value.trim(), token: 'mock-token' });
 
-      window.location.hash = '#/muro';
+      // el visualizador no tiene acceso a muro todavía — lo mandamos directo a su perfil
+      window.location.hash = userData.role === 'visualizer' ? '#/profile' : '#/muro';
     } catch (err) {
       showError(emailInput, emailError, 'Credenciales incorrectas.');
     } finally {
