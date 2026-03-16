@@ -45,7 +45,7 @@ export default function Navbar () {
 
 <img 
 class="rounded-full w-8 h-8 object-cover" 
-src="/public/images/avatar.webp" 
+src="/frontend/public/images/avatar.webp" 
 alt="avatar">
 
 <div class="flex flex-col leading-tight">

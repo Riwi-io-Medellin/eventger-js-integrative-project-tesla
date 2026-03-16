@@ -10,9 +10,9 @@ export default function Sidebar() {
 
             <div class="h-16 w-full flex items-center justify-center mb-5 mt-5">
 
-                <img id="logoFull" src="/public/images/logo.png" class="mr-8 h-[8rem]">
+                <img id="logoFull" src="/frontend/public/images/logo.png" class="mr-8 h-[8rem]">
 
-                <img id="logoSmall" src="/public/images/RoundedLogo.png" class="h-12 hidden">
+                <img id="logoSmall" src="/frontend/public/images/RoundedLogo.png" class="h-12 hidden">
 
             </div>
 
