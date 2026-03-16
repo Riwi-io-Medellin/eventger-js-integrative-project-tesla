@@ -29,6 +29,11 @@ const eventModule = require("./src/routes/event.route")
 
 app.use("/event", eventModule)
 
+// AI Module
+const aiModule = require("./src/routes/ai.route")
+
+app.use("/ai", aiModule)
+
 // Error handling middleware
 app.use(handleError)
 
