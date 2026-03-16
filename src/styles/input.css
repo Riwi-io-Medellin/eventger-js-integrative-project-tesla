@@ -1,0 +1,8 @@
+/* src/styles/input.css
+   Punto de entrada para el compilador de Tailwind.
+   Ejecutar: npx tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --watch
+   ──────────────────────────────────────────────────────────────────────────────────── */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

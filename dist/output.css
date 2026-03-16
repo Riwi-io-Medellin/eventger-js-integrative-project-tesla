@@ -1,0 +1,185 @@
+/* src/styles/styles.css
+   Solo lo que Tailwind NO puede hacer por sí solo:
+   animaciones @keyframes, label flotante, barra de fortaleza.
+   ─────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* ════════════════════════════════════════════
+   Animaciones — reutilizables en toda la app
+   ════════════════════════════════════════════ */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.98);
+  }
+
+  to   {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(37,99,235,0.25);
+  }
+
+  50%       {
+    box-shadow: 0 0 0 10px rgba(37,99,235,0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pendingRing {
+  0%   {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+
+  50%       {
+    opacity: 0.4;
+  }
+}
+
+.card-animate {
+  animation: slideUp 0.55s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+.logo-ring    {
+  animation: ringPulse 2.8s ease-in-out infinite;
+}
+
+.spinner      {
+  animation: spin 0.7s linear infinite;
+}
+
+/* Entrada escalonada de hijos */
+
+.stagger > * {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.stagger > *:nth-child(1) {
+  animation: slideUp 0.45s 0.15s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+.stagger > *:nth-child(2) {
+  animation: slideUp 0.45s 0.22s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+.stagger > *:nth-child(3) {
+  animation: slideUp 0.45s 0.29s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+.stagger > *:nth-child(4) {
+  animation: slideUp 0.45s 0.36s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+.stagger > *:nth-child(5) {
+  animation: slideUp 0.45s 0.43s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+.stagger > *:nth-child(6) {
+  animation: slideUp 0.45s 0.50s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+/* Animación del ícono en pantalla pending */
+
+.pending-icon-ring {
+  animation: pendingRing 2s ease-out infinite;
+}
+
+.pending-status-dot {
+  animation: statusPulse 1.8s ease-in-out infinite;
+}
+
+/* ════════════════════════════════════════════
+   Label flotante — no replicable con Tailwind
+   ════════════════════════════════════════════ */
+
+.input-group {
+  position: relative;
+}
+
+.input-group label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  color: #64748b;
+  /* text-sub */
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
+  padding: 0 2px;
+}
+
+/* Label sube cuando el input tiene foco o contenido */
+
+.input-group input:not(:-moz-placeholder) ~ label {
+  top: 0;
+  font-size: 0.72rem;
+  color: #2563eb;
+  /* primary */
+  background: #ffffff;
+  /* card */
+  padding: 0 4px;
+}
+
+.input-group input:focus ~ label,
+.input-group input:not(:placeholder-shown) ~ label {
+  top: 0;
+  font-size: 0.72rem;
+  color: #2563eb;
+  /* primary */
+  background: #ffffff;
+  /* card */
+  padding: 0 4px;
+}
+
+/* Padding interno del input para dejar espacio al label flotante */
+
+.input-group input {
+  padding-top: 18px;
+  padding-bottom: 6px;
+}
+
+/* ════════════════════════════════════════════
+   Barra de fortaleza de contraseña
+   ════════════════════════════════════════════ */
+
+.strength-fill {
+  height: 100%;
+  border-radius: 9999px;
+  /* width y background se setean dinámicamente desde register.js */
+  transition: width 0.3s ease, background 0.3s ease;
+  width: 0%;
+}
