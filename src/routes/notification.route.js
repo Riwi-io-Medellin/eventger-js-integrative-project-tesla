@@ -1,6 +1,7 @@
 const {Router} = require('express')
-const {emailNot}= require('../controllers/notification.controller.js');
+const {webNotificationsByUserCont}= require('../controllers/notification.controller.js');
 
 const router = Router();
 
-router.get('/', emailNot)
+router.get('/:id', webNotificationsByUserCont)
+router
