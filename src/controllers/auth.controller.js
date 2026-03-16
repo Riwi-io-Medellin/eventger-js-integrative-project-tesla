@@ -9,6 +9,7 @@ async function register(req, res, next) {
             req.body,
             "name",
             "email",
+            "phone",
             "password",
             "departmentId"
         )

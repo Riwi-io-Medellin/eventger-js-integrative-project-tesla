@@ -5,13 +5,12 @@ const jwt = require('./../utils/jwt')
 const nodemailer = require("./../utils/nodemailer")
 
 async function register(data) {
-    const { name, email, password, departmentId } = data
+    const { name, email, phone, password, departmentId } = data
 
     // Verify that the email isn't registered yet
     const emailFound = await userRepository.findByEmail(email)
 
     if(emailFound.length > 0) {
-        console.log(emailFound)
         const error = Error("That email is already registered.")
         error.status = 400
 
@@ -25,6 +24,7 @@ async function register(data) {
     const newUser = {
         name,
         email,
+        phone,
         passwordHash,
         departmentId,
         roleId: "0307d64f-1901-4c01-84c0-444bb40d03b1", // Default Role ID (Visualizer)
@@ -38,6 +38,7 @@ async function register(data) {
         id,
         name,
         email,
+        phone,
         message: "Account created. Admin must active the account"
     }
 
@@ -49,7 +50,7 @@ async function login(email, password) {
 
     // 1. The email user must be registered
     const user = await userRepository.findByEmail(email)
-    //console.log("USER: ", user[0])
+
     if(user.length == 0) {
         const err = new Error("Invalid Credentials")
         err.status = 401
@@ -76,6 +77,7 @@ async function login(email, password) {
         id: user[0].id,
         name: user[0].name,
         email: user[0].email,
+        phone: user[0].phone,
         departmentId: user[0].department_id,
         roleId: user[0].role_id
     }

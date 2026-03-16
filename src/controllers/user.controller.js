@@ -68,6 +68,7 @@ async function add(req, res, next) {
             req.body,
             "name",
             "email",
+            "phone",
             "password",
             "departmentId",
             "roleName"
@@ -93,6 +94,7 @@ async function update(req, res, next) {
             req.body,
             "name",
             "email",
+            "phone",
             "departmentId",
             "roleName",
             "isActive"
@@ -132,6 +134,7 @@ async function updateDynamic(req, res, next) {
         // Validating what params has been sent
         if(body.name) filters.name = body.name;
         if(body.email) filters.email = body.email;
+        if(body.phone) filters.phone_number = body.phone;
         if(body.isActive) filters.is_active = body.isActive;
         if(body.departmentId) filters.department_id = body.departmentId;
         if(body.roleName) filters.role_id = body.roleName;

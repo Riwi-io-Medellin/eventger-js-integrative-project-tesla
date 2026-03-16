@@ -44,7 +44,7 @@ async function getById(id) {
 
 // POST
 async function add(data) {
-    const { name, email, password, departmentId, roleName } = data
+    const { name, email, phone, password, departmentId, roleName } = data
 
     // Verify that the email isn't registered yet
     const emailFound = await userRepository.findByEmail(email)
@@ -66,6 +66,7 @@ async function add(data) {
     const newUser = {
         name,
         email,
+        phone,
         passwordHash,
         departmentId,
         roleId,
@@ -79,6 +80,8 @@ async function add(data) {
         id,
         name,
         email,
+        phone,
+        isActive,
         message: "Account created. Admin must active the account"
     }
 
@@ -87,7 +90,7 @@ async function add(data) {
 
 // UPDATE
 async function update(data, id) {
-    const { name, email, departmentId, roleName, isActive } = data
+    const { name, email, phone, departmentId, roleName, isActive } = data
 
     // Asign role ID
     const roleId =  (await roleRepository.findByName(roleName)).id
@@ -96,6 +99,7 @@ async function update(data, id) {
     const updatedUser = {
         name,
         email,
+        phone,
         departmentId,
         roleId,
         isActive
