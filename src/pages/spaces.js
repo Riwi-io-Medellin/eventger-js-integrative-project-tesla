@@ -1,7 +1,6 @@
 // src/pages/spaces.js
-// Módulo Gestión de Espacios y Escenarios
+import { buildSidebar, bindSidebarLogout } from "../utils/layout.js";
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
 if (!document.getElementById("eventos-style")) {
   const s = document.createElement("style");
   s.id = "eventos-style";
@@ -62,7 +61,6 @@ if (!document.getElementById("eventos-style")) {
   document.head.appendChild(s);
 }
 
-// ─── Toast mínimo ─────────────────────────────────────────────────────────────
 function spToast(type, message) {
   let c = { bg: "#f0fdf4", border: "#bbf7d0", color: "#16a34a", icon: "✓" };
   if (type === "error")
@@ -88,7 +86,6 @@ function spToast(type, message) {
   }, 3500);
 }
 
-// ─── Mock data compartido (en producción → API) ───────────────────────────────
 // 🔌 await api.getScenarios()
 let SP_SCENARIOS = [
   { id: "sc-1", name: "Unidad Deportiva Atanasio Girardot", location: "Medellín, Laureles" },
@@ -117,17 +114,11 @@ function nameOf(list, id) {
   return list.find((x) => x.id === id)?.name || "—";
 }
 
-// ─── Status helpers ───────────────────────────────────────────────────────────
-
-// ─── ID generator ─────────────────────────────────────────────────────────────
 function genId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MÓDULO ESPACIOS  (#/espacios)
-// ═══════════════════════════════════════════════════════════════════════════════
-
+// --- espacios (#/espaces) ---
 let spSearch = "";
 let spModal = null;
 let spSelected = null;
@@ -145,50 +136,9 @@ function getFilteredSpaces() {
   });
 }
 
-function renderSpSidebar(active) {
-  const isSpaces = active === "spaces";
-  const isScenarios = active === "scenarios";
-  return `
-  <aside class="dash-sidebar" id="sp-sidebar">
-    <div style="padding:1.25rem;display:flex;align-items:center;gap:0.75rem;border-bottom:1px solid rgba(255,255,255,0.07);">
-      <div style="width:2.25rem;height:2.25rem;border-radius:0.625rem;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg fill="currentColor" viewBox="0 0 20 20" width="18" height="18"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/></svg>
-      </div>
-      <div>
-        <p style="color:#f1f5f9;font-weight:700;font-size:0.9375rem;margin:0;line-height:1.2;">EventgerJS</p>
-        <p style="color:#64748b;font-size:0.7rem;margin:0;">Gestión Deportiva</p>
-      </div>
-    </div>
-    <nav style="flex:1;padding:1rem 0;overflow-y:auto;">
-      <span class="nav-group-label">Principal</span>
-      <a class="nav-item" href="#/dashboard">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h6"/></svg>Muro de Eventos</a>
-      <a class="nav-item" href="#/dashboard">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>Dashboard</a>
-      <span class="nav-group-label">Gestión</span>
-      <a class="nav-item" href="#/dashboard">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Gestión Usuarios</a>
-      <a class="nav-item" href="#/eventos">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Gestión Eventos</a>
-      <div style="padding:0.4rem 1.25rem 0.25rem;display:flex;align-items:center;gap:0.5rem;color:#cbd5e1;font-size:0.875rem;font-weight:500;">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Gestión Espacios
-      </div>
-      <a class="nav-item nav-sub ${isSpaces ? "active" : ""}" href="#/espaces">Administrar Espacios</a>
-      <a class="nav-item nav-sub ${isScenarios ? "active" : ""}" href="#/complex">Administrar Escenarios</a>
-      <a class="nav-item" href="#/perfil">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Mi Perfil</a>
-    </nav>
-    <div style="padding:1rem;border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:0.75rem;">
-      <div style="width:2rem;height:2rem;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;font-weight:700;flex-shrink:0;">SC</div>
-      <div style="min-width:0;flex:1;">
-        <p style="color:#e2e8f0;font-size:0.8rem;font-weight:600;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Sara Calderón</p>
-        <p style="color:#64748b;font-size:0.7rem;margin:0;">Admin General</p>
-      </div>
-      <button onclick="handleLogout()" style="background:none;border:none;cursor:pointer;color:#64748b;padding:0.25rem;border-radius:0.375rem;" title="Cerrar sesión">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-      </button>
-    </div>
-  </aside>`;
+// marco 'spaces' como activo para ambas sub-páginas de este módulo
+function renderSpSidebar() {
+  return buildSidebar("spaces");
 }
 
 function emptySpState() {
@@ -382,7 +332,7 @@ function renderSpPage() {
   const app = document.getElementById("app");
   app.innerHTML = `
   <div class="dash-layout">
-    ${renderSpSidebar("spaces")}
+    ${renderSpSidebar()}
     <div class="dash-main">
       <!-- Topbar mobile -->
       <div class="ev-header" style="height:3.5rem;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
@@ -451,7 +401,7 @@ function renderSpPage() {
   }, { once: true });
 }
 
-// ─── Handlers espacios ────────────────────────────────────────────────────────
+// handlers de espacios
 window.openSpModal = function (type, id = null) {
   spSelected = id ? SP_SPACES.find((s) => s.id === id) : null;
   spModal = { type };
@@ -544,12 +494,10 @@ export function initSpaces() {
   spSelected = null;
   spFilter = "";
   renderSpPage();
+  bindSidebarLogout();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MÓDULO ESCENARIOS  (#/escenarios)
-// ═══════════════════════════════════════════════════════════════════════════════
-
+// --- escenarios (#/complex) ---
 let scSearch = "";
 let scModal = null;
 let scSelected = null;
@@ -704,7 +652,7 @@ function renderScPage() {
   const app = document.getElementById("app");
   app.innerHTML = `
   <div class="dash-layout">
-    ${renderSpSidebar("scenarios")}
+    ${renderSpSidebar()}
     <div class="dash-main">
       <!-- Topbar mobile -->
       <div class="ev-header" style="height:3.5rem;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
@@ -755,7 +703,7 @@ function renderScPage() {
   ${buildScModal()}`;
 }
 
-// ─── Handlers escenarios ──────────────────────────────────────────────────────
+// handlers de escenarios
 window.openScModal = function (type, id = null) {
   scSelected = id ? SP_SCENARIOS.find((s) => s.id === id) : null;
   scModal = { type };
@@ -817,4 +765,5 @@ export function initScenarios() {
   scModal = null;
   scSelected = null;
   renderScPage();
+  bindSidebarLogout();
 }

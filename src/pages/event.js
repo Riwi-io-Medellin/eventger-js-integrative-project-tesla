@@ -1,7 +1,9 @@
 // src/pages/event.js
 import { createCalendar } from "../components/calendar.js";
+import { buildSidebar, bindSidebarLogout } from "../utils/layout.js";
+import { getSession, getInitials, getRoleName, clearSession } from "../utils/session.js";
 
-// ─── Sonner CDN ───────────────────────────────────────────────────────────────
+// cargo Sonner desde CDN si todavía no está en window
 function loadSonner() {
   return new Promise((resolve) => {
     if (window.Sonner) {
@@ -24,7 +26,7 @@ function toast(type, message) {
     else window.Sonner.toast.warning(message, { duration: 4000 });
     return;
   }
-  // Fallback propio
+  // fallback manual si Sonner no cargó
   let c = { bg: "#f0fdf4", border: "#bbf7d0", color: "#16a34a", icon: "✓" };
   if (type === "error")
     c = { bg: "#fef2f2", border: "#fecaca", color: "#dc2626", icon: "✕" };
@@ -49,7 +51,6 @@ function toast(type, message) {
   }, 3500);
 }
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
 if (!document.getElementById("eventos-style")) {
   const s = document.createElement("style");
   s.id = "eventos-style";
@@ -124,7 +125,6 @@ if (!document.getElementById("eventos-style")) {
   document.head.appendChild(s);
 }
 
-// ─── Mock data FK ─────────────────────────────────────────────────────────────
 // 🔌 await api.getScenarios()
 const MOCK_SCENARIOS = [
   {
@@ -250,7 +250,6 @@ const MOCK_DISCIPLINES = [
   { id: "di-8", name: "Microfútbol" },
 ];
 
-// ─── Estado ───────────────────────────────────────────────────────────────────
 let evView = "list";
 let evSearch = "";
 let evModal = null;
@@ -323,7 +322,6 @@ let MOCK_EVENTS = [
   },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 const HOUR_MIN = 6;
 const HOUR_MAX = 23;
 
@@ -365,7 +363,7 @@ function fmtDateInput(iso) {
   return iso ? iso.slice(0, 16) : "";
 }
 
-// ─── Validación disponibilidad ────────────────────────────────────────────────
+// revisa solapamiento de fechas y estado del espacio antes de guardar
 function checkAvailability(start, finish, spaceId, excludeId = null) {
   const s = new Date(start),
     f = new Date(finish);
@@ -425,47 +423,31 @@ function checkAvailability(start, finish, spaceId, excludeId = null) {
   return { ok: true, message: "Disponible ✓" };
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
 function renderSidebar() {
-  return `
-  <aside class="dash-sidebar" id="ev-sidebar">
-    <div style="padding:1.25rem;display:flex;align-items:center;gap:0.75rem;border-bottom:1px solid rgba(255,255,255,0.07);">
-      <div style="width:2.25rem;height:2.25rem;border-radius:0.625rem;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg fill="currentColor" viewBox="0 0 20 20" width="18" height="18"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/></svg>
-      </div>
-      <div>
-        <p style="color:#f1f5f9;font-weight:700;font-size:0.9375rem;margin:0;line-height:1.2;">EventgerJS</p>
-        <p style="color:#64748b;font-size:0.7rem;margin:0;">Gestión Deportiva</p>
-      </div>
-    </div>
-    <nav style="flex:1;padding:1rem 0;overflow-y:auto;">
-      <span class="nav-group-label">Principal</span>
-      <a class="nav-item" href="#/dashboard"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h6"/></svg>Muro de Eventos</a>
-      <a class="nav-item" href="#/dashboard"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>Dashboard</a>
-      <span class="nav-group-label">Gestión</span>
-      <a class="nav-item" href="#/dashboard"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Gestión Usuarios</a>
-      <a class="nav-item active" href="#/events"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Gestión Eventos</a>
-      <div style="padding:0.4rem 1.25rem 0.25rem;display:flex;align-items:center;gap:0.5rem;color:#cbd5e1;font-size:0.875rem;font-weight:500;">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Gestión Espacios
-      </div>
-      <a class="nav-item nav-sub" href="#/espaces">Administrar Espacios</a>
-      <a class="nav-item nav-sub" href="#/complex">Administrar Escenarios</a>
-      <a class="nav-item" href="#/perfil"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Mi Perfil</a>
-    </nav>
-    <div style="padding:1rem;border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:0.75rem;">
-      <div style="width:2rem;height:2rem;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;font-weight:700;flex-shrink:0;">SC</div>
-      <div style="min-width:0;flex:1;">
-        <p style="color:#e2e8f0;font-size:0.8rem;font-weight:600;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Sara Calderón</p>
-        <p style="color:#64748b;font-size:0.7rem;margin:0;">Admin General</p>
-      </div>
-      <button onclick="handleLogout()" style="background:none;border:none;cursor:pointer;color:#64748b;padding:0.25rem;border-radius:0.375rem;" title="Cerrar sesión">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-      </button>
-    </div>
-  </aside>`;
+  return buildSidebar("events");
+}
+// el coordinador solo edita los suyos y con 3+ días de anticipación
+function canEdit(ev) {
+  const session = getSession();
+  const role = session?.role || "visualizer";
+  if (role === "admin_gen" || role === "admin_spa") return true;
+  if (role !== "event_creator") return false;
+  if (ev.creator_id !== session.name) return false;
+  const daysUntil = (new Date(ev.start_date) - Date.now()) / 86400000;
+  return daysUntil > 3;
 }
 
-// ─── Vistas ───────────────────────────────────────────────────────────────────
+// para eliminar necesita 7+ días de margen
+function canDelete(ev) {
+  const session = getSession();
+  const role = session?.role || "visualizer";
+  if (role === "admin_gen" || role === "admin_spa") return true;
+  if (role !== "event_creator") return false;
+  if (ev.creator_id !== session.name) return false;
+  const daysUntil = (new Date(ev.start_date) - Date.now()) / 86400000;
+  return daysUntil > 7;
+}
+
 function renderList(events) {
   if (!events.length) return emptyState();
   return `<div style="background:#fff;border-radius:0.875rem;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
@@ -499,12 +481,12 @@ function renderList(events) {
           <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:${st.dot};flex-shrink:0;"></span>${st.label}
         </span></td>
         <td style="text-align:right;"><div style="display:flex;align-items:center;justify-content:flex-end;gap:0.25rem;">
-          <button class="action-btn" title="Editar" style="color:#2563eb;" onclick="openEvModal('edit','${ev.id}')" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
+          ${canEdit(ev) ? `<button class="action-btn" title="Editar" style="color:#2563eb;" onclick="openEvModal('edit','${ev.id}')" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          </button>
-          <button class="action-btn" title="Eliminar" style="color:#ef4444;" onclick="openEvModal('delete','${ev.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+          </button>` : ""}
+          ${canDelete(ev) ? `<button class="action-btn" title="Eliminar" style="color:#ef4444;" onclick="openEvModal('delete','${ev.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
+          </button>` : ""}
         </div></td>
       </tr>`;
       })
@@ -541,12 +523,12 @@ function renderCards(events) {
             <h3 style="font-size:1rem;font-weight:700;color:#0f172a;margin:0;line-height:1.35;">${ev.title}</h3>
           </div>
           <div style="display:flex;gap:0.25rem;flex-shrink:0;">
-            <button class="action-btn" title="Editar" style="color:#2563eb;" onclick="openEvModal('edit','${ev.id}')" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
+            ${canEdit(ev) ? `<button class="action-btn" title="Editar" style="color:#2563eb;" onclick="openEvModal('edit','${ev.id}')" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-            </button>
-            <button class="action-btn" title="Eliminar" style="color:#ef4444;" onclick="openEvModal('delete','${ev.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+            </button>` : ""}
+            ${canDelete(ev) ? `<button class="action-btn" title="Eliminar" style="color:#ef4444;" onclick="openEvModal('delete','${ev.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </button>
+            </button>` : ""}
           </div>
         </div>
         ${ev.description ? `<p style="font-size:0.8rem;color:#64748b;margin:0 0 1rem;line-height:1.5;">${ev.description}</p>` : ""}
@@ -601,7 +583,6 @@ function emptyState() {
   </div>`;
 }
 
-// ─── Selects helpers ──────────────────────────────────────────────────────────
 function buildScenarioOptions(selectedId) {
   const none = `<option value="" disabled ${!selectedId ? "selected" : ""}>Selecciona un escenario...</option>`;
   return (
@@ -644,7 +625,7 @@ function buildDisciplineOptions(selectedId) {
   );
 }
 
-// Llamado desde onchange del select de escenario — actualiza el select de espacio dinámicamente
+// cuando cambia el escenario recargo los espacios disponibles
 function onScenarioChange(scenarioId) {
   const spaceEl = document.getElementById("ev-space");
   if (!spaceEl) return;
@@ -652,13 +633,10 @@ function onScenarioChange(scenarioId) {
   spaceEl.disabled = false;
   // Limpiar banner disponibilidad
   const banner = document.getElementById("ev-avail-banner");
-  if (banner) {
-    banner.style.display = "none";
-  }
+  if (banner) banner.style.display = "none";
 }
 window.onScenarioChange = onScenarioChange;
 
-// ─── Modal crear / editar ─────────────────────────────────────────────────────
 function renderFormModal(ev) {
   const isEdit = !!ev;
   const v = ev || {
@@ -674,7 +652,7 @@ function renderFormModal(ev) {
   const todayStr = new Date().toISOString().slice(0, 10);
   const minDt = `${todayStr}T06:00`;
 
-  // Mostrar info del escenario seleccionado (si existe)
+  // si hay escenario preseleccionado muestro su info
   const selectedScenario = MOCK_SCENARIOS.find((sc) => sc.id === v.scenario_id);
   const scenarioInfo = selectedScenario
     ? `<span style="font-size:0.775rem;color:#64748b;display:block;margin-top:0.25rem;">📍 ${selectedScenario.location}</span>`
@@ -787,7 +765,6 @@ function renderFormModal(ev) {
   </div>`;
 }
 
-// ─── Modal eliminar ───────────────────────────────────────────────────────────
 function renderDeleteModal(ev) {
   return `
   <div class="modal-backdrop" id="ev-modal-backdrop" onclick="closeEvModal(event)">
@@ -812,7 +789,6 @@ function renderDeleteModal(ev) {
   </div>`;
 }
 
-// ─── Helpers calendario por espacio ───────────────────────────────────────────
 function applyFilter(events) {
   const now = Date.now();
   if (evFilter === "active")
@@ -873,10 +849,17 @@ function calendarSection() {
     </div>`;
 }
 
-// ─── Render principal ─────────────────────────────────────────────────────────
 function getFiltered() {
-  const q = evSearch;
-  return applyFilter(MOCK_EVENTS).filter(
+  const session = getSession();
+  const role    = session?.role || "visualizer";
+  const q       = evSearch;
+
+  // el coordinador solo ve los suyos
+  const base = role === "event_creator"
+    ? MOCK_EVENTS.filter((ev) => ev.creator_id === session.name)
+    : MOCK_EVENTS;
+
+  return applyFilter(base).filter(
     (ev) =>
       ev.title.toLowerCase().includes(q) ||
       nameOf(MOCK_SCENARIOS, ev.scenario_id).toLowerCase().includes(q) ||
@@ -886,6 +869,11 @@ function getFiltered() {
 }
 
 function renderPage() {
+  // Leemos la sesión una sola vez para pintar el header con los datos reales
+  const session  = getSession();
+  const sesName  = session?.name  || "Usuario";
+  const sesRole  = getRoleName(session?.role || "visualizer");
+  const sesInits = getInitials(sesName);
   const filtered = getFiltered();
   document.getElementById("app").innerHTML = `
   <div class="dash-layout">
@@ -904,10 +892,10 @@ function renderPage() {
             oninput="evSearchHandler(this.value)"/>
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem;margin-left:auto;">
-          <div style="width:2rem;height:2rem;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;font-weight:700;">SC</div>
+          <div style="width:2rem;height:2rem;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;font-weight:700;">${sesInits}</div>
           <div class="hide-mobile">
-            <p style="font-size:0.8125rem;font-weight:600;color:#1e293b;margin:0;line-height:1.2;">Sara Calderón</p>
-            <p style="font-size:0.7rem;color:#64748b;margin:0;">Administrador General</p>
+            <p style="font-size:0.8125rem;font-weight:600;color:#1e293b;margin:0;line-height:1.2;">${sesName}</p>
+            <p style="font-size:0.7rem;color:#64748b;margin:0;">${sesRole}</p>
           </div>
         </div>
       </header>
@@ -972,7 +960,6 @@ function renderPage() {
   }
 }
 
-// ─── Acciones ─────────────────────────────────────────────────────────────────
 function setEvView(view) {
   if (evView === "calendar" && view !== "calendar" && calInstance) {
     calInstance.destroy();
@@ -1017,7 +1004,6 @@ function onCalSpaceChange(spaceId) {
   evCalSpace = spaceId;
   const calEvs = getCalEvents();
   if (calInstance) calInstance.setEvents(calEvs);
-  // Actualizar contador
   const countEl = document.getElementById("ev-cal-count");
   if (countEl) {
     const info = spaceId
@@ -1055,7 +1041,7 @@ function closeEvModal(e) {
   evSelected = null;
 }
 
-// Actualiza banner de disponibilidad en tiempo real
+// actualizo el banner de disponibilidad cada vez que cambia fecha o espacio
 function onDatesChange() {
   const start = document.getElementById("ev-start")?.value;
   const finish = document.getElementById("ev-finish")?.value;
@@ -1163,7 +1149,7 @@ function submitEvForm(e) {
     space_id: spaceId,
     discipline_id: document.getElementById("ev-discipline").value || null,
     is_active: document.getElementById("ev-active").checked,
-    creator_id: evSelected?.creator_id || "Sara Calderón",
+    creator_id: evSelected?.creator_id || getSession()?.name || "Desconocido",
     created_at: evSelected?.created_at || new Date().toISOString(),
   };
 
@@ -1212,11 +1198,11 @@ function refreshContent() {
 }
 
 function handleLogout() {
-  localStorage.removeItem("token");
+  clearSession();
   window.location.hash = "#/login";
 }
 
-// ─── Exponer globalmente ──────────────────────────────────────────────────────
+// expongo al window porque los onclick del template literal los necesitan
 window.setEvView = setEvView;
 window.evSearchHandler = evSearchHandler;
 window.openEvModal = openEvModal;
@@ -1226,7 +1212,6 @@ window.submitEvForm = submitEvForm;
 window.confirmDeleteEv = confirmDeleteEv;
 window.handleLogout = handleLogout;
 
-// ─── Export ───────────────────────────────────────────────────────────────────
 export async function initEvent() {
   if (calInstance) {
     calInstance.destroy();
@@ -1238,4 +1223,5 @@ export async function initEvent() {
   evFilter = "";
   await loadSonner();
   renderPage();
+  bindSidebarLogout();
 }

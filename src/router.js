@@ -1,57 +1,63 @@
 // src/router.js
-// Router hash-based para SPA vanilla
+// Router hash-based con protección de rutas por sesión y por rol.
 
-import { initLogin } from "./pages/login.js";
-import { initHome } from "./pages/home.js";
-import { initDashboard } from "./pages/dashboard.js";
-import { initNotFound } from "./pages/notFound.js";
-import { initRegister } from "./pages/register.js";
-import { initEvent } from "./pages/event.js";
-import { initSpaces, initScenarios } from "./pages/spaces.js";
+import { initLogin }    from './pages/login.js';
+import { initHome }     from './pages/home.js';
+import { initDashboard } from './pages/dashboard.js';
+import { initNotFound } from './pages/notFound.js';
+import { initRegister } from './pages/register.js';
+import { initEvent }    from './pages/event.js';
+import { initProfile }  from './pages/profile.js';
+import { initSpaces, initScenarios } from './pages/spaces.js';
+import { getSession }   from './utils/session.js';
 
-// ─── Tabla de rutas ───────────────────────────────────────────────────────────
 const routes = {
-  "#/": initHome,
-  "#/login": initLogin,
-  "#/register": initRegister,
-  "#/dashboard": initDashboard,
-  "#/events": initEvent,
-  "#/espaces": initSpaces,
-  "#/complex": initScenarios,
+  '#/':         initHome,
+  '#/login':    initLogin,
+  '#/register': initRegister,
+  '#/dashboard': initDashboard,
+  '#/events':   initEvent,
+  '#/espaces':  initSpaces,
+  '#/complex':  initScenarios,
+  '#/profile':  initProfile,
 };
 
-// ─── Guard de autenticación ───────────────────────────────────────────────────
-// Páginas que requieren sesión activa
-const protectedRoutes = ["#/dashboard"];
+// null = cualquier usuario logueado; array = solo esos roles
+const routeRoles = {
+  '#/dashboard': null,
+  '#/events':    ['admin_gen', 'admin_spa', 'event_creator'],
+  '#/espaces':   ['admin_gen', 'admin_spa'],
+  '#/complex':   ['admin_gen', 'admin_spa'],
+  '#/profile':   null,
+};
 
-function isAuthenticated() {
-  // Ajusta esto a como guardas la sesión en tu store/state.js
-  // Ej: import { getState } from './store/state.js'; return !!getState().token;
-  return !!localStorage.getItem("token");
-}
-
-// ─── Motor del router ─────────────────────────────────────────────────────────
 function resolve() {
-  const hash = window.location.hash || "#/";
+  const hash    = window.location.hash || '#/';
   const handler = routes[hash];
 
-  // Ruta protegida sin sesión → redirigir al login
-  if (protectedRoutes.includes(hash) && !isAuthenticated()) {
-    window.location.hash = "#/login";
+  const isPublic = ['#/', '#/login', '#/register'].includes(hash);
+  if (isPublic) {
+    handler ? handler() : initNotFound();
     return;
   }
 
-  // Ruta no encontrada
-  if (!handler) {
-    initNotFound();
+  const session = getSession();
+  if (!session) {
+    window.location.hash = '#/login';
     return;
   }
 
-  handler();
+  // tiene sesión pero no tiene permiso para esta ruta
+  const allowedRoles = routeRoles[hash];
+  if (allowedRoles && !allowedRoles.includes(session.role)) {
+    window.location.hash = '#/muro';
+    return;
+  }
+
+  handler ? handler() : initNotFound();
 }
 
-// ─── Inicialización ───────────────────────────────────────────────────────────
 export function initRouter() {
-  window.addEventListener("hashchange", resolve);
-  resolve(); // cargar la ruta inicial al abrir la app
+  window.addEventListener('hashchange', resolve);
+  resolve();
 }

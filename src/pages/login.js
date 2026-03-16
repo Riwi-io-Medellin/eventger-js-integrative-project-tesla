@@ -1,4 +1,5 @@
 // src/pages/login.js
+import { setSession } from '../utils/session.js';
 
 const template = /* html */`
   <div style="display:flex; min-height:100vh; font-family:'DM Sans',sans-serif;">
@@ -147,7 +148,6 @@ const template = /* html */`
   </div>
 `;
 
-// ─── Responsive ───────────────────────────────────────────────────────────────
 if (!document.getElementById('login-responsive-style')) {
   const style = document.createElement('style');
   style.id = 'login-responsive-style';
@@ -163,7 +163,6 @@ if (!document.getElementById('login-responsive-style')) {
   document.head.appendChild(style);
 }
 
-// ─── Lógica ───────────────────────────────────────────────────────────────────
 function bindEvents() {
   const form          = document.getElementById('login-form');
   const emailInput    = document.getElementById('email');
@@ -223,9 +222,24 @@ function bindEvents() {
     if (btnArrow) btnArrow.style.display = 'none';
     btnSpinner.classList.remove('hidden');
     try {
-      // 🔌 const data = await api.login({ email, password });
+      // 🔌 reemplazar esto por await api.login({ email, password }) cuando conectemos
       await new Promise(r => setTimeout(r, 1500));
-      window.location.hash = '#/dashboard';
+
+      // cuentas de prueba para mientras no hay backend:
+      //   admin@icrd.gob   → Admin General
+      //   spa@icrd.gob     → Admin Espacios
+      //   creator@icrd.gob → Coordinador
+      //   cualquier otro   → Visualizador (contraseña: mínimo 6 caracteres)
+      const em = emailInput.value.trim().toLowerCase();
+      const mockUsers = {
+        'admin@icrd.gob':   { id:'u-1', name:'Carlos Rodríguez', role:'admin_gen',     department:'Externo',             createdAt:'2025-01-15' },
+        'spa@icrd.gob':     { id:'u-2', name:'Ana García',        role:'admin_spa',     department:'Espacios Deportivos', createdAt:'2025-02-01' },
+        'creator@icrd.gob': { id:'u-3', name:'Jose David Henao',  role:'event_creator', department:'Fomento Deportivo',   createdAt:'2025-03-01' },
+      };
+      const userData = mockUsers[em] || { id:'u-4', name:'Luis Martínez', role:'visualizer', department:'Fomento Deportivo', createdAt:'2025-03-10' };
+      setSession({ ...userData, email: emailInput.value.trim(), token: 'mock-token' });
+
+      window.location.hash = '#/muro';
     } catch (err) {
       showError(emailInput, emailError, 'Credenciales incorrectas.');
     } finally {
