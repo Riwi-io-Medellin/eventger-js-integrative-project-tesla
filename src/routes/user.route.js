@@ -11,7 +11,7 @@ router.use(routeValidation.authToken, routeValidation.authRole("admin_gen"))
 router.get("/", async (req, res, next) => await userController.get(req, res, next))
 
 // Get users by page
-router.get("/page", async (req, res, next) => await userController.getByPage(req, res, next))
+router.get("/sheet", async (req, res, next) => await userController.getByPage(req, res, next))
 
 // View unique user info
 router.get("/:id", routeValidation.authRole("admin_gen", "admin_spa", "event_creator", "visualizer"), async (req, res, next) => await userController.getById(req, res, next))
