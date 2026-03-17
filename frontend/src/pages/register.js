@@ -1,4 +1,5 @@
 // src/pages/register.js
+import { register as apiRegister } from '../services/api.js'; // función de registro del archivo central de la API
 
 // Departamentos mapeados desde la BD
 const DEPARTMENTS = [
@@ -145,6 +146,26 @@ const templateForm = /* html */ `
                 aria-describedby="email-error"/>
             </div>
             <p id="email-error" style="display:none; align-items:center; gap:0.25rem; margin-top:0.375rem; font-size:0.75rem; color:#ef4444;" role="alert">
+              <svg fill="currentColor" viewBox="0 0 20 20" width="12" height="12" style="flex-shrink:0"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              <span></span>
+            </p>
+          </div>
+
+          <!-- Teléfono -->
+          <div>
+            <label for="phone" style="display:block; font-size:0.875rem; font-weight:600; color:#1e293b; margin-bottom:0.5rem;">Teléfono</label>
+            <div style="position:relative;">
+              <div style="position:absolute; left:0.875rem; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              </div>
+              <input type="tel" id="phone" name="phone" placeholder="+57 300 000 0000"
+                autocomplete="tel"
+                style="width:100%; box-sizing:border-box; border-radius:0.625rem; border:1.5px solid #e2e8f0; background:#fff; padding:0.75rem 1rem 0.75rem 2.625rem; font-size:0.9375rem; color:#1e293b; font-family:inherit; outline:none; transition:border-color 0.2s, box-shadow 0.2s;"
+                onfocus="this.style.borderColor='#2563eb'; this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.12)'"
+                onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'"
+                aria-describedby="phone-error"/>
+            </div>
+            <p id="phone-error" style="display:none; align-items:center; gap:0.25rem; margin-top:0.375rem; font-size:0.75rem; color:#ef4444;" role="alert">
               <svg fill="currentColor" viewBox="0 0 20 20" width="12" height="12" style="flex-shrink:0"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
               <span></span>
             </p>
@@ -346,8 +367,9 @@ function clearError(input, errorEl) {
 function bindEvents() {
   const form = document.getElementById("register-form");
   const fullnameInput = document.getElementById("fullname");
-  const emailInput = document.getElementById("email");
-  const deptSelect = document.getElementById("department");
+  const emailInput    = document.getElementById("email");
+  const phoneInput    = document.getElementById("phone"); // campo de teléfono requerido por la API
+  const deptSelect    = document.getElementById("department");
   const passwordInput = document.getElementById("password");
   const confirmInput = document.getElementById("confirm-password");
   const submitBtn = document.getElementById("submit-btn");
@@ -385,6 +407,16 @@ function bindEvents() {
         return false;
       }
       clearError(emailInput, e);
+      return true;
+    },
+    phone() {
+      const v = phoneInput.value.trim();
+      const e = document.getElementById("phone-error");
+      if (!v) {
+        showError(phoneInput, e, "El teléfono es requerido.");
+        return false;
+      }
+      clearError(phoneInput, e);
       return true;
     },
     department() {
@@ -466,8 +498,9 @@ function bindEvents() {
 
   // Blur/input validators
   fullnameInput.addEventListener("blur", () => validators.fullname());
-  emailInput.addEventListener("blur", () => validators.email());
-  deptSelect.addEventListener("change", () => validators.department());
+  emailInput.addEventListener("blur",    () => validators.email());
+  phoneInput.addEventListener("blur",    () => validators.phone()); // validamos teléfono cuando el usuario sale del campo
+  deptSelect.addEventListener("change",  () => validators.department());
   passwordInput.addEventListener("blur", () => validators.password());
   confirmInput.addEventListener("blur", () => validators.confirm());
   fullnameInput.addEventListener("input", () => {
@@ -489,6 +522,7 @@ function bindEvents() {
     const valid = [
       validators.fullname(),
       validators.email(),
+      validators.phone(),      // incluimos el teléfono en la validación antes de enviar
       validators.department(),
       validators.password(),
       validators.confirm(),
@@ -501,21 +535,26 @@ function bindEvents() {
     btnSpinner.classList.remove("hidden");
 
     try {
-      // 🔌 Reemplaza con tu API:
-      // await api.register({
-      //   name: fullnameInput.value.trim(),
-      //   email: emailInput.value.trim(),
-      //   password: passwordInput.value,
-      //   department_id: deptSelect.value,   ← ya viene el UUID real
-      // });
-      await new Promise((r) => setTimeout(r, 1500));
+      // Enviamos los datos al backend. El servidor crea la cuenta con rol "visualizer"
+      // y la deja inactiva hasta que el admin la apruebe.
+      await apiRegister({
+        name:         fullnameInput.value.trim(),
+        email:        emailInput.value.trim(),
+        phone:        phoneInput.value.trim(),      // requerido por la API
+        password:     passwordInput.value,
+        departmentId: deptSelect.value,             // UUID del departamento seleccionado
+      });
+
+      // Si llegamos aquí es porque el servidor respondió OK → mostramos la pantalla de espera
       const firstName = fullnameInput.value.trim().split(" ")[0];
       document.getElementById("app").innerHTML = templatePending(firstName);
+
     } catch (err) {
+      // El servidor puede rechazar si el correo ya existe u otro dato es inválido
       showError(
         emailInput,
         document.getElementById("email-error"),
-        "Este correo ya está registrado.",
+        err.message || "Este correo ya está registrado.",
       );
     } finally {
       submitBtn.disabled = false;

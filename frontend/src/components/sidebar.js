@@ -26,6 +26,12 @@ const NAV_ITEMS = [
     roles: ["admin_gen", "admin_spa"],
   },
   {
+    label: "Escenarios",
+    href: "#/escenarios",
+    icon: "fa-building",
+    roles: ["admin_gen", "admin_spa"],
+  },
+  {
     label: "Usuarios",
     href: "#/usuarios",
     icon: "fa-users",

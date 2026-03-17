@@ -1,5 +1,6 @@
 // src/pages/login.js
-import { setSession } from '../utils/session.js';
+import { setSession }          from '../utils/session.js';
+import { login as apiLogin, getUserById } from '../services/api.js'; // login y consulta de usuario
 
 const template = /* html */`
   <div style="display:flex; min-height:100vh; font-family:'DM Sans',sans-serif;">
@@ -199,7 +200,7 @@ function bindEvents() {
   function validatePassword() {
     const v = passwordInput.value;
     if (!v)           { showError(passwordInput, passwordError, 'La contraseña es requerida.'); return false; }
-    if (v.length < 6) { showError(passwordInput, passwordError, 'Mínimo 6 caracteres.'); return false; }
+    if (v.length < 4) { showError(passwordInput, passwordError, 'Mínimo 4 caracteres.'); return false; }
     clearError(passwordInput, passwordError); return true;
   }
 
@@ -217,32 +218,62 @@ function bindEvents() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!validateEmail() | !validatePassword()) return;
+    console.log('[login] submit capturado — iniciando petición al backend');
     submitBtn.disabled = true;
     btnText.textContent = 'Ingresando...';
     if (btnArrow) btnArrow.style.display = 'none';
     btnSpinner.classList.remove('hidden');
     try {
-      // 🔌 reemplazar esto por await api.login({ email, password }) cuando conectemos
-      await new Promise(r => setTimeout(r, 1500));
+      // Llamamos al backend real con el email y la contraseña que escribió el usuario
+      const data = await apiLogin({
+        email:    emailInput.value.trim(),
+        password: passwordInput.value,
+      });
+      console.log('[login] PASO 1 — token recibido:', data?.token ? 'SÍ' : 'NO', data);
 
-      // cuentas de prueba para mientras no hay backend:
-      //   admin@icrd.gob   → Admin General
-      //   spa@icrd.gob     → Admin Espacios
-      //   creator@icrd.gob → Coordinador
-      //   cualquier otro   → Visualizador (contraseña: mínimo 6 caracteres)
-      const em = emailInput.value.trim().toLowerCase();
-      const mockUsers = {
-        'admin@icrd.gob':   { id:'u-1', name:'Carlos Rodríguez', role:'admin_gen',     department:'Externo',             createdAt:'2025-01-15' },
-        'spa@icrd.gob':     { id:'u-2', name:'Ana García',        role:'admin_spa',     department:'Espacios Deportivos', createdAt:'2025-02-01' },
-        'creator@icrd.gob': { id:'u-3', name:'Jose David Henao',  role:'event_creator', department:'Fomento Deportivo',   createdAt:'2025-03-01' },
-      };
-      const userData = mockUsers[em] || { id:'u-4', name:'Luis Martínez', role:'visualizer', department:'Fomento Deportivo', createdAt:'2025-03-10' };
-      setSession({ ...userData, email: emailInput.value.trim(), token: 'mock-token' });
+      // El backend solo devuelve el token JWT.
+      // Decodificamos el payload (parte del medio) para sacar el id del usuario.
+      // El JWT tiene 3 partes: encabezado.payload.firma — solo necesitamos el payload.
+      let payload = {};
+      try {
+        const base64Payload = data.token.split('.')[1]; // tomamos la parte del medio
+        payload = JSON.parse(atob(base64Payload));       // atob decodifica Base64 → JSON
+      } catch {
+        // si el token tiene formato inesperado, payload queda vacío
+      }
+      console.log('[login] PASO 2 — payload del JWT:', payload);
 
-      // el visualizador no tiene acceso a muro todavía — lo mandamos directo a su perfil
-      window.location.hash = userData.role === 'visualizer' ? '#/perfil' : '#/';
+      // Guardamos el token YA para que la siguiente petición pueda usarlo en el header
+      localStorage.setItem('token', data.token);
+
+      // Hacemos una segunda llamada para obtener el perfil completo del usuario (incluye roleName)
+      const userInfo = await getUserById(payload.id);
+      console.log('[login] PASO 3 — userInfo completo:', JSON.stringify(userInfo, null, 2));
+
+      // Guardamos la sesión completa.
+      // Si el backend aún no devuelve roleName, usamos 'admin_gen' como temporal
+      // para poder navegar y probar las vistas. Quitar este fallback cuando el backend lo implemente.
+      const roleToSave = userInfo.role?.name || userInfo.roleName || 'admin_gen';
+      setSession({
+        id:           userInfo.id           || payload.id,
+        name:         userInfo.name         || payload.name  || '',
+        email:        userInfo.email        || payload.email || emailInput.value.trim(),
+        role:         roleToSave,
+        departmentId: userInfo.departmentId || payload.departmentId || '',
+        token:        data.token,
+      });
+      console.log('[login] PASO 4 — sesión guardada, rol:', roleToSave);
+
+      // Redirigimos según el rol obtenido del servidor
+      const role = roleToSave;
+      console.log('[login] PASO 5 — redirigiendo a:', role === 'visualizer' ? '#/perfil' : '#/');
+      window.location.hash = role === 'visualizer' ? '#/perfil' : '#/';
+
     } catch (err) {
-      showError(emailInput, emailError, 'Credenciales incorrectas.');
+      // Si el servidor responde con error (credenciales incorrectas, cuenta inactiva, etc.)
+      // mostramos el mensaje que nos llegó del servidor, o uno genérico si no hay mensaje
+      console.error('[login] ERROR:', err);
+      showError(emailInput, emailError, err.message || 'Credenciales incorrectas.');
     } finally {
       submitBtn.disabled = false;
       btnText.textContent = 'Ingresar';

@@ -3,6 +3,8 @@ import { createCalendar } from "../components/calendar.js";
 import Sidebar from "../components/sidebar.js";
 import { getSession, getInitials, getRoleName, clearSession } from "../utils/session.js";
 import { toast } from "../utils/toast.js";
+// Importamos las funciones de la API central para eventos
+import { getEvents, createEvent, updateEvent, deleteEvent, getScenarios, getSpaces } from "../services/api.js";
 
 // cargo Sonner desde CDN si todavía no está en window
 function loadSonner() {
@@ -94,117 +96,11 @@ if (!document.getElementById("eventos-style")) {
 }
 
 // 🔌 await api.getScenarios()
-const MOCK_SCENARIOS = [
-  {
-    id: "sc-1",
-    name: "Unidad Deportiva Atanasio Girardot",
-    location: "Medellín, Laureles",
-  },
-  {
-    id: "sc-2",
-    name: "Complejo Acuático Julio César Noriega",
-    location: "Medellín, Robledo",
-  },
-  { id: "sc-3", name: "Polideportivo Sur", location: "Medellín, El Poblado" },
-  {
-    id: "sc-4",
-    name: "Unidad Deportiva María Paz",
-    location: "Medellín, Popular",
-  },
-];
+// Se llena desde el backend en initEvent() con GET /scenario
+let MOCK_SCENARIOS = [];
 
-// 🔌 await api.getSpaces()
-// status: 'activo' | 'inactivo'
-const MOCK_SPACES = [
-  // Atanasio Girardot
-  {
-    id: "sp-1",
-    name: "Cancha Sintética Marte 2",
-    description: "Fútbol 11 sintético",
-    status: "activo",
-    scenario_id: "sc-1",
-  },
-  {
-    id: "sp-2",
-    name: "Estadio Atanasio Girardot",
-    description: "Fútbol profesional",
-    status: "activo",
-    scenario_id: "sc-1",
-  },
-  {
-    id: "sp-3",
-    name: "Coliseo Iván de Bedout",
-    description: "Baloncesto y eventos",
-    status: "inactivo",
-    scenario_id: "sc-1",
-  },
-  {
-    id: "sp-4",
-    name: "Pista Atlética Principal",
-    description: "Atletismo y ciclismo",
-    status: "activo",
-    scenario_id: "sc-1",
-  },
-  // Complejo Acuático
-  {
-    id: "sp-5",
-    name: "Piscina Olímpica 50m",
-    description: "Natación de competencia",
-    status: "activo",
-    scenario_id: "sc-2",
-  },
-  {
-    id: "sp-6",
-    name: "Piscina de Saltos",
-    description: "Saltos ornamentales",
-    status: "inactivo",
-    scenario_id: "sc-2",
-  },
-  {
-    id: "sp-7",
-    name: "Piscina de Calentamiento",
-    description: "Entrenamiento",
-    status: "activo",
-    scenario_id: "sc-2",
-  },
-  // Polideportivo Sur
-  {
-    id: "sp-8",
-    name: "Cancha de Tenis 1",
-    description: "Arcilla",
-    status: "activo",
-    scenario_id: "sc-3",
-  },
-  {
-    id: "sp-9",
-    name: "Cancha de Voleibol",
-    description: "Voleibol sala",
-    status: "activo",
-    scenario_id: "sc-3",
-  },
-  {
-    id: "sp-10",
-    name: "Gimnasio Funcional",
-    description: "Pesas y cardio",
-    status: "inactivo",
-    scenario_id: "sc-3",
-  },
-  // María Paz
-  {
-    id: "sp-11",
-    name: "Cancha Múltiple Norte",
-    description: "Microfútbol / Básquet",
-    status: "activo",
-    scenario_id: "sc-4",
-  },
-  {
-    id: "sp-12",
-    name: "Cancha Múltiple Sur",
-    description: "Microfútbol / Básquet",
-    status: "activo",
-    scenario_id: "sc-4",
-  },
-];
+// Se llena desde el backend en initEvent() con GET /space
+let MOCK_SPACES = [];
 
 // 🔌 await api.getDisciplines()
 const MOCK_DISCIPLINES = [
@@ -226,69 +122,9 @@ let calInstance = null;
 let evCalSpace = ""; // '' = todos los espacios
 let evFilter = "";  // '' | 'active' | 'inactive'
 
-let MOCK_EVENTS = [
-  {
-    id: "1",
-    title: "Torneo Interbarrial de Fútbol",
-    description: "Torneo anual entre barrios.",
-    start_date: "2026-03-15T08:00",
-    finish_date: "2026-03-15T18:00",
-    is_active: true,
-    discipline_id: "di-1",
-    scenario_id: "sc-1",
-    space_id: "sp-1",
-    creator_id: "Sara Calderón",
-  },
-  {
-    id: "2",
-    title: "Campeonato de Natación",
-    description: "Competencia departamental.",
-    start_date: "2026-03-18T09:00",
-    finish_date: "2026-03-18T17:00",
-    is_active: true,
-    discipline_id: "di-2",
-    scenario_id: "sc-2",
-    space_id: "sp-5",
-    creator_id: "Jeronimo Gallego",
-  },
-  {
-    id: "3",
-    title: "Bloqueo Mantenimiento",
-    description: "Cierre por mantenimiento.",
-    start_date: "2026-03-20T00:00",
-    finish_date: "2026-03-20T23:59",
-    is_active: true,
-    discipline_id: null,
-    scenario_id: "sc-1",
-    space_id: "sp-3",
-    creator_id: "Sara Calderón",
-    type: "bloqueo",
-  },
-  {
-    id: "4",
-    title: "Festival de Atletismo",
-    description: "Festival juvenil de atletismo.",
-    start_date: "2026-03-25T07:00",
-    finish_date: "2026-03-25T16:00",
-    is_active: false,
-    discipline_id: "di-3",
-    scenario_id: "sc-1",
-    space_id: "sp-4",
-    creator_id: "Jose David Henao",
-  },
-  {
-    id: "5",
-    title: "Copa de Baloncesto",
-    description: "Copa intercolegial.",
-    start_date: "2026-03-28T10:00",
-    finish_date: "2026-03-28T20:00",
-    is_active: false,
-    discipline_id: "di-4",
-    scenario_id: "sc-3",
-    space_id: "sp-9",
-    creator_id: "Jhon Cadavid",
-  },
-];
+// Los eventos reales se cargan desde el backend en initEvent().
+// Arrancamos con array vacío — se llena con la respuesta de GET /event
+let MOCK_EVENTS = [];
 
 const HOUR_MIN = 6;
 const HOUR_MAX = 23;
@@ -556,6 +392,9 @@ function emptyState() {
 }
 
 function buildScenarioOptions(selectedId) {
+  // Si el backend no devolvió escenarios, mostramos un aviso en el selector
+  if (!MOCK_SCENARIOS.length)
+    return `<option value="" disabled selected>Sin escenarios — créalos primero en la sección Escenarios</option>`;
   const none = `<option value="" disabled ${!selectedId ? "selected" : ""}>Selecciona un escenario...</option>`;
   return (
     none +
@@ -762,11 +601,9 @@ function renderDeleteModal(ev) {
 }
 
 function applyFilter(events) {
-  const now = Date.now();
-  if (evFilter === "active")
-    return events.filter((ev) => new Date(ev.finish_date).getTime() > now);
-  if (evFilter === "inactive")
-    return events.filter((ev) => new Date(ev.finish_date).getTime() <= now);
+  // Usamos el campo is_active que viene directamente del backend, no una comparación de fechas
+  if (evFilter === "active")   return events.filter((ev) => ev.is_active === true);
+  if (evFilter === "inactive") return events.filter((ev) => ev.is_active !== true);
   return events;
 }
 
@@ -817,7 +654,7 @@ function calendarSection() {
   return `
     ${buildCalSpaceSelector()}
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-      <div id="ev-calendar" style="min-width:520px;"></div>
+      <div id="ev-calendar" style="min-width:520px;height:580px;"></div>
     </div>`;
 }
 
@@ -855,14 +692,7 @@ function renderPage() {
         <button onclick="document.getElementById('ev-sidebar').classList.toggle('open')" class="show-mobile" style="background:none;border:none;cursor:pointer;color:#64748b;padding:0.25rem;">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
-        <div style="flex:1;max-width:26rem;position:relative;">
-          <svg style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input type="text" placeholder="Buscar eventos, escenarios, espacios..." value="${evSearch}"
-            style="width:100%;border:1.5px solid #e2e8f0;border-radius:0.625rem;background:#f8fafc;padding:0.5rem 1rem 0.5rem 2.25rem;font-size:0.875rem;font-family:inherit;color:#1e293b;outline:none;"
-            onfocus="this.style.borderColor='#2563eb';this.style.background='#fff'"
-            onblur="this.style.borderColor='#e2e8f0';this.style.background='#f8fafc'"
-            oninput="evSearchHandler(this.value)"/>
-        </div>
+        <span style="font-size:1rem;font-weight:700;color:#0f172a;">Gestión de Eventos</span>
         <div style="display:flex;align-items:center;gap:0.5rem;margin-left:auto;">
           <div style="width:2rem;height:2rem;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;font-weight:700;">${sesInits}</div>
           <div class="hide-mobile">
@@ -1065,7 +895,7 @@ function clearErrs() {
   );
 }
 
-function submitEvForm(e) {
+async function submitEvForm(e) {
   e.preventDefault();
   clearErrs();
 
@@ -1131,13 +961,41 @@ function submitEvForm(e) {
     created_at: evSelected?.created_at || new Date().toISOString(),
   };
 
+  // Convertimos el payload de snake_case (formato interno) a camelCase (formato que espera la API)
+  const apiPayload = {
+    title:        payload.title,
+    description:  payload.description,
+    startDate:    payload.start_date,    // la API espera camelCase
+    finishDate:   payload.finish_date,
+    isActive:     payload.is_active,
+    disciplineId: payload.discipline_id || null,
+    scenarioId:   payload.scenario_id,
+    spaceId:      payload.space_id,
+    creatorId:    getSession()?.id || '', // usamos el ID del usuario logueado, no el nombre
+  };
+
   if (isEdit) {
-    // 🔌 await api.updateEvent(payload.id, payload)
-    const idx = MOCK_EVENTS.findIndex((ev) => ev.id === payload.id);
-    if (idx > -1) MOCK_EVENTS[idx] = payload;
+    try {
+      // Enviamos la actualización al servidor — PUT /event/:id
+      await updateEvent(payload.id, apiPayload);
+      // Si el servidor respondió OK, actualizamos también el array local
+      const idx = MOCK_EVENTS.findIndex((ev) => ev.id === payload.id);
+      if (idx > -1) MOCK_EVENTS[idx] = payload;
+    } catch (err) {
+      toast("error", err.message || "Error al actualizar el evento.");
+      return; // detenemos la ejecución si el servidor rechazó el cambio
+    }
   } else {
-    // 🔌 await api.createEvent(payload)
-    MOCK_EVENTS.unshift(payload);
+    try {
+      // Creamos el evento en el servidor — POST /event
+      const created = await createEvent(apiPayload);
+      // El servidor nos devuelve el evento con su ID real — lo usamos en lugar del temporal
+      payload.id = created?.id || payload.id;
+      MOCK_EVENTS.unshift(payload);
+    } catch (err) {
+      toast("error", err.message || "Error al crear el evento.");
+      return;
+    }
   }
 
   document.getElementById("ev-modal-container").innerHTML = "";
@@ -1152,15 +1010,22 @@ function submitEvForm(e) {
   refreshContent();
 }
 
-function confirmDeleteEv() {
+async function confirmDeleteEv() {
   const title = evSelected?.title || "Evento";
-  // 🔌 await api.deleteEvent(evSelected.id)
-  MOCK_EVENTS = MOCK_EVENTS.filter((e) => e.id !== evSelected.id);
-  document.getElementById("ev-modal-container").innerHTML = "";
-  evModal = null;
-  evSelected = null;
-  toast("success", `"${title}" eliminado correctamente.`);
-  refreshContent();
+  const idToDelete = evSelected?.id;
+  try {
+    // Eliminamos el evento en el servidor — DELETE /event/:id
+    await deleteEvent(idToDelete);
+    // Si el servidor confirmó la eliminación, lo quitamos del array local
+    MOCK_EVENTS = MOCK_EVENTS.filter((e) => e.id !== idToDelete);
+    document.getElementById("ev-modal-container").innerHTML = "";
+    evModal = null;
+    evSelected = null;
+    toast("success", `"${title}" eliminado correctamente.`);
+    refreshContent();
+  } catch (err) {
+    toast("error", err.message || "Error al eliminar el evento.");
+  }
 }
 
 function refreshContent() {
@@ -1195,10 +1060,58 @@ export default async function initEvent() {
     calInstance.destroy();
     calInstance = null;
   }
-  evView = "list";
-  evSearch = "";
+  evView    = "list";
+  evSearch  = "";
   evCalSpace = "";
-  evFilter = "";
+  evFilter  = "";
   await loadSonner();
+
+  // Cargamos eventos, escenarios y espacios en paralelo — los tres son necesarios
+  // para mostrar el listado y para que el formulario use IDs reales del backend
+  try {
+    const [apiEvents, scenarios, spaces] = await Promise.all([
+      getEvents(),     // GET /event
+      getScenarios(),  // GET /scenario
+      getSpaces(),     // GET /space
+    ]);
+
+    // Eventos: camelCase (API) → snake_case (frontend)
+    MOCK_EVENTS = (apiEvents || []).map((ev) => ({
+      id:            ev.id,
+      title:         ev.title,
+      description:   ev.description   || '',
+      start_date:    ev.startDate,
+      finish_date:   ev.finishDate,
+      is_active:     ev.isActive,
+      discipline_id: ev.disciplineId  || null,
+      scenario_id:   ev.scenarioId,
+      space_id:      ev.spaceId,
+      creator_id:    ev.creatorId     || '',
+      created_at:    ev.createdAt     || '',
+    }));
+
+    // Escenarios: necesarios para el selector del formulario y para mostrar nombres
+    MOCK_SCENARIOS = (scenarios || []).map((sc) => ({
+      id:       sc.id,
+      name:     sc.name,
+      location: sc.location || '',
+    }));
+
+    // Espacios: necesarios para filtrar por escenario en el formulario
+    MOCK_SPACES = (spaces || []).map((sp) => ({
+      id:          sp.id,
+      name:        sp.name,
+      description: sp.description || '',
+      status:      sp.status      || 'activo',
+      scenario_id: sp.scenarioId  || sp.scenario_id || '',
+    }));
+
+  } catch (err) {
+    MOCK_EVENTS    = [];
+    MOCK_SCENARIOS = [];
+    MOCK_SPACES    = [];
+    toast("error", "No se pudieron cargar los datos del servidor.");
+  }
+
   renderPage();
 }
