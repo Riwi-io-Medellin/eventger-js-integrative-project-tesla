@@ -7,7 +7,7 @@ import { initSpaces, initScenarios } from "./pages/spaces.js";
 import { initLogin }    from "./pages/login.js";
 import { initRegister } from "./pages/register.js";
 import { initNotFound } from "./pages/notFound.js";
-import { getSession }   from "./utils/session.js";
+import { getSession, clearSession } from "./utils/session.js";
 
 // null = pública | array = roles permitidos (admin_gen siempre pasa)
 const ROUTES = {
@@ -35,9 +35,16 @@ export function navigate(path) {
 
 export async function router() {
     const path    = getPath();
-    const route   = ROUTES[path];
     const session = getSession();
     const role    = session?.role || null;
+
+    // Ruta raíz → redirigir según sesión
+    if (path === "/") {
+        navigate(session ? "/dashboard" : "/login");
+        return;
+    }
+
+    const route = ROUTES[path];
 
     // Ruta no encontrada → 404
     if (!route) {
@@ -57,9 +64,11 @@ export async function router() {
         return;
     }
 
-    // Ruta protegida sin permiso → home
+    // Ruta protegida sin permiso → si el rol no existe o no está permitido, limpiamos la sesión
+    // y mandamos al login. Esto evita el bucle infinito cuando la sesión tiene datos incorrectos.
     if (route.roles !== null && role !== 'admin_gen' && !route.roles.includes(role)) {
-        navigate("/");
+        clearSession(); // borramos los datos corruptos del localStorage
+        navigate("/login");
         return;
     }
 

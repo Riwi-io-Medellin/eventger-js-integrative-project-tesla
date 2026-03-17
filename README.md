@@ -39,12 +39,60 @@ This aplication resolves problems about event management, visualization and most
 ...
 
 ### Backend
-
-...
-
+```text
+backend/                  # Backend server folder
+├── node_modules/         # Installed npm packages 
+├── src/                  # All sources of the code
+│   ├── controllers/      # Handler of incoming requests
+│   ├── db/               # Database models and connection
+│   ├── infrastructure/   # Setup and config files for backend (twilio, openai)
+│   ├── middlewares/      # Middleware functions for express(Validation and error handle)
+│   ├── repositories/     # Data saved on database
+│   ├── routes/           # API route definitions
+│   ├── services/         # Business logic and services
+│   └── utils/            # Util function (hash, nodemailer, validate)
+├── prompts.js            # AI prompts
+├── .env                  # Environment variables (not committed)
+├── .gitignore            # Files to ignore in git
+├── API.md                # API documentation
+├── app.js                # Main app file that starts the server
+├── package-lock.json     # Lock file for npm dependencies
+└── package.json          # Project info and npm scripts
+ ``` 
 ## 🚀 Setup
+1. **Clone the repository**
+```bash
+git clone https://github.com/Riwi-io-Medellin/eventger-js-integrative-project-tesla.git
+cd <project-folder>
+```
 
-Fast guide to init the project
+2. **Install Backend Dependencies**
+```bash
+cd backend
+npm install
+```
+
+3. **Install Frontend Dependencies**
+```bash
+cd ../frontend
+npm install
+```
+4. **Set up enviroment variables**
+
+- Go to the `backend` folder.
+- Create a `.env` file (you can use `.env.example` as a template):
+
+5. **Run backend server**
+```bash
+cd ../backend
+npm run dev
+```
+Backend usually runs at: http://localhost:3000 or your configured PORT on .env
+
+6. **Run frontend**
+
+Use live server extension to open frontend/index.html
+
 
 ## 🧑‍💻 Team
 
