@@ -36,7 +36,7 @@ async function search(filters) {
 
 // POST
 async function create(data) {
-    const { name, email, phoneNumber, passwordHash, departmentId, roleId, isActive } = data
+    const { name, email, phone, passwordHash, departmentId, roleId, isActive } = data
 
     const result = await pool.query(
         `
@@ -44,7 +44,7 @@ async function create(data) {
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id
         `,
-        [name, email, phoneNumber, passwordHash, departmentId, roleId, isActive]
+        [name, email, phone, passwordHash, departmentId, roleId, isActive]
     )
 
     return result.rows[0].id
@@ -87,7 +87,7 @@ async function updateDynamic(data, id) {
     // Adding id
     finalQuery += ` WHERE id = $${fields.length + 1} RETURNING id, name, email, phone_number, is_active, created_at, department_id, role_id `
     values.push(id)
-    
+    console.log(finalQuery)
     // Query
     const result = await pool.query(finalQuery, values)
 

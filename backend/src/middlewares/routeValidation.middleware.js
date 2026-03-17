@@ -12,7 +12,6 @@ function authToken(req, res, next) {
         if(!token) {
             const err = new Error("Missing token")
             err.status = 401
-            console.log("executed", req)
 
             throw err
         }
@@ -50,14 +49,13 @@ function authRole(...roles) {
         try {
             // Getting the user role
             const user = (await userRepository.findById(req.userId))[0]
-
             const userRole = (await roleRepository.findById(user.role_id))
 
             // Checking if the role doesn't matches with the allowed
             if(!roles.includes(userRole.name)) {
                 const err = new Error("User hasn't permission for this request")
                 err.status = 401
-                console.log(userRole.name, roles)
+
                 throw err
             }
 

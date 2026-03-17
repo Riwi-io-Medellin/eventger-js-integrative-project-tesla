@@ -9,13 +9,13 @@ const eventController = require("./../controllers/event.controller.js")
 router.use(routeValidation.authToken, routeValidation.authRole("admin_gen", "admin_spa", "event_creator", "visualizer"))
 
 // Get events by activity status, scenarioId, disciplineId or spaceId. Sent with query
-router.get("/", async (req, res, next) => await eventController.get(req, res, next))
+router.get("/", routeValidation.authRole("admin_gen", "admin_spa", "event_creator", "visualizer"), async (req, res, next) => await eventController.get(req, res, next))
 
 // Get events by lapse
-router.get("/by-lapse", async (req, res, next) => await eventController.getByLapse(req, res, next))
+router.get("/by-lapse", routeValidation.authRole("admin_gen", "admin_spa", "event_creator", "visualizer"), async (req, res, next) => await eventController.getByLapse(req, res, next))
 
 // Get events by id
-router.get("/:id", async (req, res, next) => await eventController.getById(req, res, next))
+router.get("/:id", routeValidation.authRole("admin_gen", "admin_spa", "event_creator", "visualizer"), async (req, res, next) => await eventController.getById(req, res, next))
 
 // Add event
 router.post("/", routeValidation.authRole("admin_gen", "admin_spa", "event_creator"), async (req, res, next) => await eventController.create(req, res, next))

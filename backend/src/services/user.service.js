@@ -81,8 +81,7 @@ async function add(data) {
         name,
         email,
         phone,
-        isActive,
-        message: "Account created. Admin must active the account"
+        message: "Account created. The account is active"
     }
 
     return info
@@ -113,7 +112,7 @@ async function update(data, id) {
 async function updateDynamic(data, id) {
     // Checking if there isn't any query
     if(Object.keys(data).length == 0) return {message: "Nothing to date."};
-
+    console.log(data)
     // Converting role name into id (if it exists)
     if(data?.role_id) {
         const userRole = (await roleRepository.findByName(data.role_id)).id
