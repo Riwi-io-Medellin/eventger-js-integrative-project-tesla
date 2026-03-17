@@ -1,5 +1,5 @@
 const eventService = require("./../services/event.service")
-
+const { notifyUsersEmail, notifyUsersPhone, createNotification } = require("./../services/notification.service")
 const validate = require("./../utils/validate")
 
 // GET
@@ -66,6 +66,7 @@ async function getById(req, res, next) {
 
 // POST
 async function create(req, res, next) {
+
     try {
         // Validation of parameters
         validate.requiredFields(
@@ -83,6 +84,15 @@ async function create(req, res, next) {
 
         // Calling service
         const response = await eventService.create(req.body)
+
+        // Send email notification
+        await notifyUsersEmail(response[0])
+
+        //Send Whatsapp notification
+        await notifyUsersPhone(response[0])
+
+        //Create Notification
+        await createNotification(response[0].id)
 
         // Returning response
         res.status(201).json(response)

@@ -87,7 +87,7 @@ async function create(data) {
         INSERT INTO event 
         (title, description, start_date, finish_date, is_active, discipline_id, scenario_id, space_id, creator_id)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        RETURNING id
+        RETURNING *
         `,
         [title, description, startDate, finishDate, isActive, disciplineId, scenarioId, spaceId, creatorId]
     )
