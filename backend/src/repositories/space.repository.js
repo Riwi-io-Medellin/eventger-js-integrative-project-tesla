@@ -2,9 +2,9 @@ const pool = require('../db/sql.js');
 
 // 1. Function to Show all spaces
 async function getSpacesRepository(){
-    const query= `select  s.name, s.description, s.status, sc.name as scenario_name
-                    from public.space s 
-                    inner join public.scenario sc 
+    const query= `select  s.id, s.name, s.description, s.status, s.scenario_id, sc.name as scenario_name
+                    from public.space s
+                    inner join public.scenario sc
                     on sc.id = s.scenario_id`
     return pool.query(query);
 } 
