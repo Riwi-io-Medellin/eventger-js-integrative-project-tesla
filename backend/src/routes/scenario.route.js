@@ -6,13 +6,19 @@ const router = Router();
 const routeValidation = require("./../middlewares/routeValidation.middleware")
 
 // Routes validation
-router.use(routeValidation.authToken, routeValidation.authRole("admin_gen, admin_spa, event_creator, visualizer"))
+router.use(routeValidation.authToken, routeValidation.authRole("admin_gen", "admin_spa", "event_creator", "visualizer"))
 
-
+// Get all scenarios
 router.get("/", routeValidation.authRole("admin_gen", "admin_spa"), async (req, res, next) => await getScenarios(req, res, next))
+
+// Create a new scenario
 router.post("/", routeValidation.authRole("admin_gen", "admin_spa"), async (req, res, next) => await createScenario(req, res, next))
+
+// Delete a scenario
 router.delete('/', (req, res) => {res.status(400).json({ message: "Scenario id is required" });});
 router.delete("/:id", routeValidation.authRole("admin_gen", "admin_spa"), async (req, res, next) => await deleteScenario(req, res, next))
+
+// Update a scenario
 router.put('/', (req, res) => {res.status(400).json({ message: "Scenario id is required" });});
 router.put("/:id", routeValidation.authRole("admin_gen", "admin_spa"), async (req, res, next) => await updateScenario(req, res, next))
 

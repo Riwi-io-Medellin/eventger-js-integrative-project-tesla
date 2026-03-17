@@ -11,6 +11,7 @@ async function getSpacesService() {
 async function createSpaceService(name, description, scenario_id) {
     const check = await checkSpaceRepository(name, scenario_id)
 
+    // check if there are elements in the array
     if (check.rowCount===0){
         const response = await createSpaceRepository(name, description, scenario_id)
         return response.rows[0];
@@ -22,27 +23,26 @@ async function createSpaceService(name, description, scenario_id) {
 // 3. Function to delete a space 
 async function deleteSpaceService(id){
     const response = await deleteSpaceRepository(id);
-    console.log(response)
     return response;
 }
 
 // 4. Function to update an space
 async function updateSpaceService(name, description, scenario_id, id) {
     const check= await checkSpaceRepository(name, scenario_id)
-    console.log(check)
     let id_verify;
+
+    // Check if the array has elements
     if (check.rowCount>0){
         id_verify = check.rows[0].id
-        console.log({'PRUEBITA': id_verify})
     } 
 
+    // Make the update if is the same element and exists that space in the scenario
     if (check.rowCount!=0 && id_verify===id){
         const response = await updateSpaceRepository(name, description, scenario_id, id)
         return response.rows[0];
     } else if (check.rowCount===0){
         const response = await updateSpaceRepository(name, description, scenario_id, id)
         return response.rows[0];
-        console.log(response)
     } else{
         return false;
     }

@@ -1,28 +1,9 @@
-const nodemailer = require("nodemailer");
+const {sendEmail} = require("../utils/nodemailer.js")
 const {getEmails, getNames, getPhone, getNotificationUser, readRepo, unreadRepo, createNotificationRepo, users, dailyNotification} = require('../repositories/notification.repository.js')
-const twilio = require('twilio')
+const {sendPhone} = require("../infrastructure/twilio.client.js")
 
-require('dotenv').config(); 
 
-// Create transporter for nodemail
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user:process.env.EMAIL_USER,
-        pass:process.env.EMAIL_PASSWORD
-    }
-})
-
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-async function sendEmail(emails, subject, message) {
-    await transporter.sendMail({
-        from:process.env.EMAIL_USER,
-        bcc: emails,
-        subject,
-        html: message
-    })
-}
-
+// 1. Function to normalize dates
 function date(date){
     const day = String(date.getDate()).padStart(2,'0');
     const month = String(date.getMonth()+1).padStart(2,'0');
@@ -33,16 +14,19 @@ function date(date){
     return newDate;
 }
 
+// 2. Function to notify a user by email when an event is created
 async function notifyUsersEmail(eventInfo){
 
     // Get emails list
     const emails = await getEmails()
     let emailList = []
 
+    // Add emails into a list
     for (let i=0; emails.rowCount>i; i++){
         emailList.push(emails.rows[i].email)
     }
 
+    // Verify if there're emails
     if (emailList.length ===0){
         return false;
     }
@@ -51,8 +35,10 @@ async function notifyUsersEmail(eventInfo){
     const names = await getNames(eventInfo.id)
     const name = names.rows[0]
     
-    // 
+    // Subject message
     const subject = `!! Nuevo Evento: ${eventInfo.title}`
+
+    // Message structure html
     const message=  `
         <html>
             <head>
@@ -99,13 +85,13 @@ async function notifyUsersEmail(eventInfo){
                         <p>Se ha creado un nuevo evento con la siguiente información:</p>
                         <div class="event-details">
                             <ul style="list-style: none; padding: 0;">
-                                <li><span class="highlight">Descripción:</span> ${eventInfo.description || 'N/A'}</li>
-                                <li><span class="highlight">Inicio:</span> ${date(eventInfo.start_date)|| 'N/A'}</li>
-                                <li><span class="highlight">Fin:</span> ${date(eventInfo.finish_date)|| 'N/A'}</li>
-                                <li><span class="highlight">Disciplina:</span> ${name.discipline_name || 'N/A'}</li>
-                                <li><span class="highlight">Escenario:</span> ${name.scenario_name || 'N/A'}</li>
-                                <li><span class="highlight">Espacio:</span> ${name.space_name|| 'N/A'}</li>
-                                <li><span class="highlight">Creador:</span> ${name.creator_name || 'N/A'}</li>
+                                <li><span class="highlight">Descripción:</span> ${eventInfo.description || ''}</li>
+                                <li><span class="highlight">Inicio:</span> ${date(eventInfo.start_date)|| ''}</li>
+                                <li><span class="highlight">Fin:</span> ${date(eventInfo.finish_date)|| ''}</li>
+                                <li><span class="highlight">Disciplina:</span> ${name.discipline_name || ''}</li>
+                                <li><span class="highlight">Escenario:</span> ${name.scenario_name || ''}</li>
+                                <li><span class="highlight">Espacio:</span> ${name.space_name|| ''}</li>
+                                <li><span class="highlight">Creador:</span> ${name.creator_name || ''}</li>
                             </ul>
                         </div>
                         <p style="font-size: 12px; color: #888; text-align: center; margin-top: 30px;">Este es un correo automático. No respondas a este mensaje.</p>
@@ -119,49 +105,45 @@ async function notifyUsersEmail(eventInfo){
 
 }
 
-async function sendPhone(message, phones){
-    try{
-        const mess = await client.messages.create({
-            from: process.env.TWILIO_WHATSAPP_NUMBER,
-            to: `whatsapp:+57${phones}`,
-            body: message
-        })
-    } catch(error){
-        console.error("Error sending message", error)
-    }
-}
-
+// 3. Function to notify user by whatsapp when an event is created
 async function notifyUsersPhone(eventInfo){
-    // Get phone list
+
+    // Get phone number of each user
     const phones = await getPhone()
     let phoneList = []
 
+    // Add all phones to the list
     for (let i=0; phones.rows.length>i; i++){
         phoneList.push(phones.rows[i].phone_number)
     }
 
+    //Verify that there are phone numbers to send the message
     if (phoneList.length ===0){
         console.log("NO PHONE NUMBERS ON THE LIST")
         return;
     }
 
+    // Get names of the discipline, scenario, space and creator name
     const names = await getNames(eventInfo.id)
     const name = names.rows[0]
 
+    // Message to send
     const message = `
         *${eventInfo.title}*
 
 Se ha creado un nuevo evento con la siguiente información:
         
-*Descripción:* ${eventInfo.description || 'N/A'}
-*Inicio:* ${date(eventInfo.start_date) || 'N/A'}
-*Fin:* ${date(eventInfo.finish_date) || 'N/A'}
-*Disciplina:* ${name.discipline_name || 'N/A'}
-*Escenario:* ${name.scenario_name || 'N/A'}
-*Espacio:* ${name.space_name || 'N/A'}
-*Creador:* ${name.creator_name || 'N/A'}
+*Descripción:* ${eventInfo.description || ''}
+*Inicio:* ${date(eventInfo.start_date) || ''}
+*Fin:* ${date(eventInfo.finish_date) || ''}
+*Disciplina:* ${name.discipline_name || ''}
+*Escenario:* ${name.scenario_name || ''}
+*Espacio:* ${name.space_name || ''}
+*Creador:* ${name.creator_name || ''}
 
 Este es un mensaje automático. No respondas a este mensaje.`;
+
+    //send message for each phone number of the list
     if(phoneList.length>0){
         for (let i=0; phoneList.length>i; i++){
             sendPhone(message, phoneList[i])
@@ -169,26 +151,31 @@ Este es un mensaje automático. No respondas a este mensaje.`;
     }  
 }
 
+// 4. Function to create a notification for each user
 async function createNotification(event_id){
+    // get all users id
     const usersP = await users()
     const user= usersP.rows
 
+    // Create the notification for each user id
     for (let i=0; user.length>i; i++){
         await createNotificationRepo(event_id, user[i].id);        
     }
 }
 
-
+// 5. Function to send a Reminder by email
 async function reminderEmail(eventInfo){
 
     // Get emails list
     const emails = await getEmails()
     let emailList = []
 
+    // Add emails to the list
     for (let i=0; emails.rowCount>i; i++){
         emailList.push(emails.rows[i].email)
     }
-
+    
+    // Verify emails on the list
     if (emailList.length ===0){
         return false;
     }
@@ -197,7 +184,7 @@ async function reminderEmail(eventInfo){
     const names = await getNames(eventInfo.id)
     const name = names.rows[0]
     
-    // 
+    // Message structure
     const subject = `!! Recordatorio Evento: ${eventInfo.title}`
     const message=  `
         <html>
@@ -245,13 +232,13 @@ async function reminderEmail(eventInfo){
                         <p>Le recordamos evento mañana:</p>
                         <div class="event-details">
                             <ul style="list-style: none; padding: 0;">
-                                <li><span class="highlight">Descripción:</span> ${eventInfo.description || 'N/A'}</li>
-                                <li><span class="highlight">Inicio:</span> ${date(eventInfo.start_date)|| 'N/A'}</li>
-                                <li><span class="highlight">Fin:</span> ${date(eventInfo.finish_date)|| 'N/A'}</li>
-                                <li><span class="highlight">Disciplina:</span> ${name.discipline_name || 'N/A'}</li>
-                                <li><span class="highlight">Escenario:</span> ${name.scenario_name || 'N/A'}</li>
-                                <li><span class="highlight">Espacio:</span> ${name.space_name|| 'N/A'}</li>
-                                <li><span class="highlight">Creador:</span> ${name.creator_name || 'N/A'}</li>
+                                <li><span class="highlight">Descripción:</span> ${eventInfo.description || ''}</li>
+                                <li><span class="highlight">Inicio:</span> ${date(eventInfo.start_date)|| ''}</li>
+                                <li><span class="highlight">Fin:</span> ${date(eventInfo.finish_date)|| ''}</li>
+                                <li><span class="highlight">Disciplina:</span> ${name.discipline_name || ''}</li>
+                                <li><span class="highlight">Escenario:</span> ${name.scenario_name || ''}</li>
+                                <li><span class="highlight">Espacio:</span> ${name.space_name|| ''}</li>
+                                <li><span class="highlight">Creador:</span> ${name.creator_name || ''}</li>
                             </ul>
                         </div>
                         <p style="font-size: 12px; color: #888; text-align: center; margin-top: 30px;">Este es un correo automático. No respondas a este mensaje.</p>
@@ -265,23 +252,30 @@ async function reminderEmail(eventInfo){
 
 }
 
+// 6. reminder for daily notification email
 async function reminderService(){
+    //get notifications of next day events
     const daily = await dailyNotification()
     const dailies= daily.rows
+
+    //Send a reminder for each notification found
     for (let i=0; dailies.length>i; i++){
         await reminderEmail(dailies[i]);        
     }
 }
 
+// 7. Function to send a Reminder by phone
 async function reminderPhone(eventInfo){
     // Get phone list
     const phones = await getPhone()
     let phoneList = []
 
+    // Add phones to the list
     for (let i=0; phones.rows.length>i; i++){
         phoneList.push(phones.rows[i].phone_number)
     }
 
+    //Verify the list have phones
     if (phoneList.length ===0){
         console.log("NO PHONE NUMBERS ON THE LIST")
         return;
@@ -290,19 +284,22 @@ async function reminderPhone(eventInfo){
     const names = await getNames(eventInfo.id)
     const name = names.rows[0]
 
+    // Whatsapp messagge
     const message = ` *¡¡Recordatorio evento ${eventInfo.title}!!*
 
 Le recordamos evento el día de mañana:
         
-*Descripción:* ${eventInfo.description || 'N/A'}
-*Inicio:* ${date(eventInfo.start_date) || 'N/A'}
-*Fin:* ${date(eventInfo.finish_date) || 'N/A'}
-*Disciplina:* ${name.discipline_name || 'N/A'}
-*Escenario:* ${name.scenario_name || 'N/A'}
-*Espacio:* ${name.space_name || 'N/A'}
-*Creador:* ${name.creator_name || 'N/A'}
+*Descripción:* ${eventInfo.description || ''}
+*Inicio:* ${date(eventInfo.start_date) || ''}
+*Fin:* ${date(eventInfo.finish_date) || ''}
+*Disciplina:* ${name.discipline_name || ''}
+*Escenario:* ${name.scenario_name || ''}
+*Espacio:* ${name.space_name || ''}
+*Creador:* ${name.creator_name || ''}
 
 Este es un mensaje automático. No respondas a este mensaje.`;
+
+    // Send reminder for each phone.
     if(phoneList.length>0){
         for (let i=0; phoneList.length>i; i++){
             sendPhone(message, phoneList[i])
@@ -310,6 +307,7 @@ Este es un mensaje automático. No respondas a este mensaje.`;
     }  
 }
 
+// 8. reminder for daily notification phone
 async function reminderPhoneService(){
     const daily = await dailyNotification()
     const dailies= daily.rows
@@ -318,13 +316,13 @@ async function reminderPhoneService(){
     }
 }
 
-// 
+// 9. Get all notifications filtered by user
 async function webNotificationsByUser(user_id) {
     const notification = await getNotificationUser(user_id)
     return notification.rows;
 }
 
-// Function to turn a function into read
+// 10. Function to turn a function into read
 
 async function switchRead(option, id)  {
     const read = await readRepo(option, id)
@@ -332,4 +330,4 @@ async function switchRead(option, id)  {
 }
 
 module.exports ={notifyUsersEmail, notifyUsersPhone, createNotification, 
-    reminderService, reminderPhoneService, webNotificationsByUser}
+    reminderService, reminderPhoneService, webNotificationsByUser,switchRead}
