@@ -19,8 +19,6 @@ app.use(morgan("dev"))
 
 // Routes of App
 
-// JERO GALLEGO ROUTES
-
 // Auth Module
 const authRouter = require('./src/routes/auth.route')
 
@@ -41,7 +39,10 @@ const aiModule = require("./src/routes/ai.route")
 
 app.use("/ai", aiModule)
 
-// SARA S ROUTES
+// Discipline Module
+const disciplineModule = require("./src/routes/discipline.route.js")
+
+app.use("/discipline", disciplineModule)
 
 // Spaces Router
 const spaceRouter = require('./src/routes/space.route.js')
@@ -65,7 +66,7 @@ app.use("/notification", notificationRouter)
 
 // Error handling middleware
 app.use(handleError)
- 
+
 // Daily reminders at 10:00 am for events of next day
 cron.schedule('0 10 * * *', async () => {
     try { 
