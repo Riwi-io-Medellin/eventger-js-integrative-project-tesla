@@ -73,7 +73,8 @@ async function login(email, password) {
         throw err
     }
 
-    const roleName = (await roleRepository.findById(user[0].role_id)).name
+    const roleName = await roleRepository.findById(user[0].role_id)
+    console.log(roleName)
 
     // Generating JWT Token
     const payload = {
