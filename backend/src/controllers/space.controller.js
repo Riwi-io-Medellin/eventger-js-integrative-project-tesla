@@ -5,10 +5,6 @@ const {getSpacesService, createSpaceService, deleteSpaceService, updateSpaceServ
 const getSpaces= async (req,res,next) =>{
     try{
         const spaces= await getSpacesService();
-        // Verify if its getting the spaces
-        if (!spaces.length){
-            return res.status(404).json({message: "No spaces found"})
-        }
         res.status(200).json(spaces)
 
     } catch (error){
