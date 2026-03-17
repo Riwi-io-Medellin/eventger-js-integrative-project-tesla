@@ -9,6 +9,7 @@ const transporter = nodemailer.createTransport({
     }
 })
 
+// Send user regsitration
 async function send(data) {
     const { addressee, subject, description } = data
 
@@ -19,6 +20,7 @@ async function send(data) {
         html: description
     })
 }
+
 
 async function sendImportant(data){ 
     const { addressee, subject, description } = data
@@ -36,4 +38,15 @@ async function sendImportant(data){
     })
 }
 
-module.exports = { send, sendImportant }
+// Send Email of event creation
+
+async function sendEmail(emails, subject, message) {
+    await transporter.sendMail({
+        from:process.env.EMAIL_USER,
+        bcc: emails,
+        subject,
+        html: message
+    })
+}
+
+module.exports = { send, sendImportant, sendEmail }

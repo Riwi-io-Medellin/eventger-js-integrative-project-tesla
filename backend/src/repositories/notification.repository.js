@@ -2,9 +2,7 @@ const pool= require('../db/sql.js')
 
 // 1. FUnction to get all emails of active users
 async function getEmails(){
-    const query = `select email
-                    from public.user
-                    where is_active= true;`
+    const query = `select * from public.user where is_active= true;`
     return pool.query(query);
 }
 
@@ -29,24 +27,22 @@ async function getNames(id){
                     inner join public.user u
                     on e.creator_id = u.id
                     where e.id = $1;`
-    return pool.query(query, [id])
+    return pool.query(query, [id]);
 }
 
-// 4. Function to create a notification
-
+// 4. Function to create a notification in database
 async function createNotificationRepo(event, user){
     const query= `insert into public.notification(event_id, user_id) values ($1, $2) RETURNING *;`
-    return pool.query(query,[event, user])
+    return pool.query(query,[event, user]);
 }
 
-
-// 5. Notification by user
+// 5. Get all Notifications by user Id
 async function getNotificationUser(user_id){
     const query= `select * 
             from public.notification 
             where user_id=$1
             order by created_at;`
-    return pool.query(query,[user_id])
+    return pool.query(query,[user_id]);
 }
 
 // 6. Functions to mark a function read
@@ -59,28 +55,24 @@ async function readRepo(option, id){
 }
 
 // 7. Count unread notifications by user
-
 async function unreadRepo(user_id){
     const query= `select count(*) as read
                     from public.notification
                     where user_id=$1 and is_read = false;`
-    return pool.query(query,[user_id])
+    return pool.query(query,[user_id]);
 }
 
-//8.  get users ID
-
+//8.  Get all users ID
 async function users(){
     const query=`select id from public.user`
-    return pool.query(query)
+    return pool.query(query);
 }
 
-// 9. Get 1 day notifications
-
+// 9. Get daily  notifications
 async function dailyNotification(){
-    const query=`select *
-                from event
+    const query=`select * from public.event
                 where DATE(start_date) = CURRENT_DATE + INTERVAL '1 day';`
-    return pool.query(query)
+    return pool.query(query);
 }
 
 

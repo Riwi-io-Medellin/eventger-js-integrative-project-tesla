@@ -37,18 +37,18 @@ async function deleteSpaceRepository(id){
 
 // 5. Update an space
 async function updateSpaceRepository(name, description, scenario_id,id){
-    const query= `UPDATE public.space 
-                    SET name= $1, description=$2, scenario_id =$3  
-                    WHERE id= $4
+    const query= `update public.space 
+                    set name= $1, description=$2, scenario_id =$3  
+                    where id= $4
                     RETURNING *`
     return pool.query(query, [name,description,scenario_id,id]);
 }
 
 // 6. update status of an space
 async function updateSpaceStatusRepository(id,status){
-    const query = `UPDATE public.space
-                   SET status=$1
-                   WHERE id=$2
+    const query = `update public.space
+                   set status=$1
+                   where id=$2
                    RETURNING *`;
     return pool.query(query,[status,id]);
 }

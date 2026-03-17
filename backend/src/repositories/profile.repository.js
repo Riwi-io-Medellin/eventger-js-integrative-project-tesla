@@ -14,6 +14,6 @@ async function getEventsByUserRepo(id){
                 on e.creator_id= u.id
                 where e.creator_id=$1;`
     return pool.query(query,[id]);
-} 
+}
 
 module.exports = {getEventsByUserRepo}

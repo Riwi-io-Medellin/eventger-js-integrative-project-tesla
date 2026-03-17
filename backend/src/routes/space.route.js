@@ -7,8 +7,10 @@ const routeValidation = require("./../middlewares/routeValidation.middleware")
 // Routes validation
 router.use(routeValidation.authToken)
 
+// Get all created spaces
+router.get("/", getSpaces)
 
-router.get("/", routeValidation.authRole("admin_gen", "admin_spa"), async (req, res, next) => await getSpaces(req, res, next))
+// Create a new space
 router.post("/", routeValidation.authRole("admin_gen", "admin_spa"), async (req, res, next) => await createSpace(req, res, next))
 router.delete('/', routeValidation.authRole("admin_gen, admin_spa, event_creator, visualizer"), (req, res) => {res.status(400).json({ message: "Space id is required" });});
 router.delete("/:id", routeValidation.authRole("admin_gen", "admin_spa"), async (req, res, next) => await deleteSpace(req, res, next))

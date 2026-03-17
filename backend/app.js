@@ -41,22 +41,30 @@ app.use("/ai", aiModule)
 
 // SARA S ROUTES
 
+// Spaces Router
 const spaceRouter = require('./src/routes/space.route.js')
-const scenarioRouter = require('./src/routes/scenario.route.js')
-const profileRouter= require('./src/routes/profile.route.js')
-const dashboardRouter= require('./src/routes/dashboard.route.js')
-const notificationRouter= require('./src/routes/notification.route.js')
-
 app.use("/space", spaceRouter)
+
+// Scenario Router
+const scenarioRouter = require('./src/routes/scenario.route.js')
 app.use("/scenario", scenarioRouter)
+
+// Profile Router
+const profileRouter= require('./src/routes/profile.route.js')
 app.use("/profile", profileRouter)
+
+// Dashboard Router
+const dashboardRouter= require('./src/routes/dashboard.route.js')
 app.use("/dashboard", dashboardRouter)
+
+// Notification USer
+const notificationRouter= require('./src/routes/notification.route.js')
 app.use("/notification", notificationRouter)
 
 // Error handling middleware
 app.use(handleError)
  
-// Daily reminders at 8:00 am
+// Daily reminders at 10:00 am for events of next day
 cron.schedule('0 10 * * *', async () => {
     try { 
         await reminderService()
