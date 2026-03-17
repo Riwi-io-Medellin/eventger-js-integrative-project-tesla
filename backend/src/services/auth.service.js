@@ -1,4 +1,5 @@
 const userRepository = require("./../repositories/user.repository")
+const roleRepository = require("./../repositories/role.repository")
 
 const hash = require('./../utils/hash')
 const jwt = require('./../utils/jwt')
@@ -72,6 +73,8 @@ async function login(email, password) {
         throw err
     }
 
+    const roleName = (await roleRepository.findById(user[0].role_id)).name
+
     // Generating JWT Token
     const payload = {
         id: user[0].id,
@@ -79,9 +82,10 @@ async function login(email, password) {
         email: user[0].email,
         phone: user[0].phone,
         departmentId: user[0].department_id,
-        roleId: user[0].role_id
+        roleId: user[0].role_id,
+        roleName
     }
-
+    
     const token = jwt.generate(payload)
 
     return {token}

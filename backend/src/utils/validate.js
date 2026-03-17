@@ -1,8 +1,9 @@
 function date(dateString) {
-    const date = new Date(dateString)
+    const parsedDate = new Date(dateString)
+    const now = new Date()
 
     // If the date is minor to the actual date
-    if(date < Date.now()) {
+    if(parsedDate < now) {
         const err = new Error("Bad date params")
         err.status = 401
 

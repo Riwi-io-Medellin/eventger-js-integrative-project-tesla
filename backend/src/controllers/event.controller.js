@@ -78,12 +78,11 @@ async function create(req, res, next) {
             "isActive",
             "disciplineId",
             "scenarioId",
-            "spaceId",
-            "creatorId"
+            "spaceId"
         )
 
         // Calling service
-        const response = await eventService.create(req.body)
+        const response = await eventService.create({...req.body, creatorId: req.userId})
 
         // Send email notification
         await notifyUsersEmail(response[0])
@@ -140,7 +139,7 @@ async function update(req, res, next) {
 async function updateDynamic(req, res, next) {
     try {
         const { id } = req.params
-        const { query } = req
+        const { body } = req
         // Checking ID
         if(!id) {
             const err = new Error("Missing ID Parameter")
@@ -152,15 +151,15 @@ async function updateDynamic(req, res, next) {
         // Checking what dates has been sent
         const dates = {}
 
-        if(query.title) dates.title = query.title;
-        if(query.description) dates.description = query.description;
-        if(query.startDate) dates.start_date = query.startDate;
-        if(query.finishDate) dates.finish_date = query.finishDate;
-        if(query.isActive) dates.is_active = query.isActive;
-        if(query.disciplineId) dates.discipline_id = query.disciplineId;
-        if(query.scenarioId) dates.scenario_id = query.scenarioId;
-        if(query.spaceId) dates.space_id = query.spaceId;
-        if(query.creatorId) dates.creator_id = query.creatorId;
+        if(body.title) dates.title = body.title;
+        if(body.description) dates.description = body.description;
+        if(body.startDate) dates.start_date = body.startDate;
+        if(body.finishDate) dates.finish_date = body.finishDate;
+        if(body.isActive) dates.is_active = body.isActive;
+        if(body.disciplineId) dates.discipline_id = body.disciplineId;
+        if(body.scenarioId) dates.scenario_id = body.scenarioId;
+        if(body.spaceId) dates.space_id = body.spaceId;
+        if(body.creatorId) dates.creator_id = body.creatorId;
 
         // Calling service
         const response = await eventService.updateDynamic(id, dates)
