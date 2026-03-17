@@ -6,12 +6,13 @@ const jwt = require("./../utils/jwt")
 function authToken(req, res, next) {
     try {
         // Give me just the ["Bearer", "TOKEN"] token paramether
-        const token = req.headers.authorization?.splice(" ")[1]
+        const token = req.headers.authorization?.split(" ")[1]
 
         // Checking that the token was sent
         if(!token) {
             const err = new Error("Missing token")
             err.status = 401
+            console.log("executed", req)
 
             throw err
         }
@@ -49,7 +50,8 @@ function authRole(...roles) {
         try {
             // Getting the user role
             const user = (await userRepository.findById(req.userId))[0]
-            const userRole = (await roleRepository.findById(user[0].role_id))[0]
+
+            const userRole = (await roleRepository.findById(user.role_id))
 
             // Checking if the role doesn't matches with the allowed
             if(!roles.includes(userRole.name)) {

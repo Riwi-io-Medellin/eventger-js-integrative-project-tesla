@@ -25,10 +25,10 @@ async function register(req, res, next) {
 }
 async function login(req, res, next) {
     try {
-        const { email, password } = req.body
-
         // Validating body parameters
         validate.requiredFields(req.body, "email", "password")
+
+        const { email, password } = req.body
 
         // Calling service
         const response = await authService.login(email, password)
