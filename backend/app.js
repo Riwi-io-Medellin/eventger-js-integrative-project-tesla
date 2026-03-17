@@ -7,11 +7,13 @@ const cron = require('node-cron')
 const {reminderService, reminderPhoneService} = require('./src/services/notification.service.js')
 
 const morgan = require('morgan')
+const cors = require('cors')
 const handleError = require("./src/middlewares/handleError.middleware")
 
 const PORT = process.env.PORT || 3000
 
 // Middlewares
+app.use(cors())
 app.use(express.json())
 app.use(morgan("dev"))
 
