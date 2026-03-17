@@ -320,7 +320,7 @@ async function reminderPhoneService(){
 
 // 
 async function webNotificationsByUser(user_id) {
-    const notification = await getNotificationUser()
+    const notification = await getNotificationUser(user_id)
     return notification.rows;
 }
 

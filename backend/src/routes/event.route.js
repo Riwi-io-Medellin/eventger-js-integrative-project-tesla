@@ -6,7 +6,7 @@ const routeValidation = require("./../middlewares/routeValidation.middleware")
 const eventController = require("./../controllers/event.controller.js")
 
 // Routes validation
-router.use(routeValidation.authToken, routeValidation.authRole("admin_gen, admin_spa, event_creator, visualizer"))
+router.use(routeValidation.authToken, routeValidation.authRole("admin_gen", "admin_spa", "event_creator", "visualizer"))
 
 // Get events by activity status, scenarioId, disciplineId or spaceId. Sent with query
 router.get("/", async (req, res, next) => await eventController.get(req, res, next))

@@ -3,6 +3,7 @@ const {webNotificationsByUserCont}= require('../controllers/notification.control
 
 const router = Router();
 
+router.get('/', (req, res) => {res.status(400).json({ message: "User id is required" });});
 router.get('/:id', webNotificationsByUserCont)
 
 module.exports = router

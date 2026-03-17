@@ -57,7 +57,7 @@ function authRole(...roles) {
             if(!roles.includes(userRole.name)) {
                 const err = new Error("User hasn't permission for this request")
                 err.status = 401
-
+                console.log(userRole.name, roles)
                 throw err
             }
 

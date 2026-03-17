@@ -86,9 +86,9 @@ async function filter(year){
 
         result[element.department_name].push({
             "discipline_name": element.discipline_name,
-            "goals_per_discipline": element.goals_per_discipline,
-            "evenst_completed": evCompleted,
-            "pending_events": evPending,
+            "goals_per_discipline": Number(element.goals_per_discipline),
+            "evenst_completed": Number(evCompleted),
+            "pending_events": Number(evPending),
             "percentage": percentage
         })
     }

@@ -48,16 +48,16 @@ async function getGoalsAllDepartments(year){
 
 // 5. Function to get events per discipline
 async function getEventsDiscipline(year){
-    const query = `select d.name as department_name, di.name as discipline_name, count(e.id) as events_per_discipline
-                    from public.event e 
-                    inner join public.user u 
-                    on e.creator_id = u.id
-                    inner join public.department d 
-                    on d.id = u.department_id
-                    inner join public.discipline di
-                    on di.id= e.discipline_id 
-                    group by e.finish_date, d.name, di.name
-                    having eXTRACT(YEAR FROM e.finish_date) =$1;`
+    const query = `SELECT 
+                        d.name AS department_name,
+                        di.name AS discipline_name,
+                        COUNT(e.id) AS events_per_discipline
+                    FROM public.event e
+                    INNER JOIN public.user u ON e.creator_id = u.id
+                    INNER JOIN public.department d ON d.id = u.department_id
+                    INNER JOIN public.discipline di ON di.id = e.discipline_id
+                    WHERE EXTRACT(YEAR FROM e.finish_date) = $1
+                    GROUP BY d.name, di.name;`
     return pool.query(query, [year])
 }
 
