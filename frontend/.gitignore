@@ -1,2 +1,23 @@
+# Dependencias
+node_modules/
+
+# Build de Tailwind
+dist/output.css
+
+# Variables de entorno
 .env
-node_modules
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/settings.json
+*.suo
+*.swp
