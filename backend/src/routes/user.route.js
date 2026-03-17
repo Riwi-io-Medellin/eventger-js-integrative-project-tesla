@@ -5,7 +5,6 @@ const routeValidation = require('./../middlewares/routeValidation.middleware')
 const userController = require('./../controllers/user.controller')
 
 // Router Validations Middleware
-//router.use(routeValidation.authToken, routeValidation.authRole("admin_gen"))
 router.use(routeValidation.authToken)
 
 // Get users with filters or not
