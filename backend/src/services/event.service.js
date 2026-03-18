@@ -38,12 +38,12 @@ async function create(data) {
     const { startDate, finishDate, spaceId } = data
 
     // Checking that the date isn't in the past
-    validate.date(startDate)
-    validate.date(finishDate)
+    //validate.date(startDate)
+    //validate.date(finishDate)
 
     // Checking the schedule restrictions
-    validate.dateSchedule(startDate)
-    validate.dateSchedule(finishDate)
+    //validate.dateSchedule(startDate)
+    //validate.dateSchedule(finishDate)
 
     // Checking the minimum time (1 hour)
     //validate.dateMinimum(startDate, finishDate)
