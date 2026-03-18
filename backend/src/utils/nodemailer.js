@@ -1,13 +1,24 @@
-const { Resend } = require("resend")
+const nodemailer = require("nodemailer")
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
-const FROM = process.env.EMAIL_FROM || "EventgerJS <onboarding@resend.dev>"
+// Gmail Transporter — forced IPv4 (Render free tier has no IPv6)
+const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    family: 4,  // force IPv4, evita ENETUNREACH en Render
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+    },
+    connectionTimeout: 10000,
+    greetingTimeout:   10000,
+    socketTimeout:     15000
+})
 
 async function send(data) {
     const { addressee, subject, description } = data
-    return resend.emails.send({
-        from: FROM,
+    return transporter.sendMail({
+        from: process.env.EMAIL_USER,
         to: addressee,
         subject,
         html: description
@@ -16,8 +27,8 @@ async function send(data) {
 
 async function sendImportant(data) {
     const { addressee, subject, description } = data
-    return resend.emails.send({
-        from: FROM,
+    return transporter.sendMail({
+        from: process.env.EMAIL_USER,
         to: addressee,
         subject,
         html: description,
@@ -30,8 +41,8 @@ async function sendImportant(data) {
 }
 
 async function sendEmail(emails, subject, message) {
-    return resend.emails.send({
-        from: FROM,
+    return transporter.sendMail({
+        from: process.env.EMAIL_USER,
         bcc: emails,
         subject,
         html: message
