@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const departmentController = require("../controllers/department.controller");
+const departmentController = require("../controllers/department.controller.js");
 
 router.get("/", async (req, res, next) => await departmentController.get(req, res, next));
 
