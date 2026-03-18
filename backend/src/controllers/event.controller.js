@@ -90,7 +90,7 @@ async function create(req, res, next) {
             await notifyUsersPhone(response[0])
             await createNotification(response[0].id)
         } catch (notifErr) {
-            console.error('[notifications] error after event creation:', notifErr.message)
+            next(notifErr)
         }
 
         // Returning response

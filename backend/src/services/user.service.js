@@ -112,7 +112,7 @@ async function update(data, id) {
 async function updateDynamic(data, id) {
     // Checking if there isn't any query
     if(Object.keys(data).length == 0) return {message: "Nothing to date."};
-    console.log(data)
+
     // Converting role name into id (if it exists)
     if(data?.role_id) {
         const userRole = (await roleRepository.findByName(data.role_id)).id

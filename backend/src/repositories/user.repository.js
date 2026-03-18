@@ -30,7 +30,7 @@ async function search(filters) {
 
     // Doing query
     const result = await pool.query(finalQuery, values)
-    console.log(result.rows)
+
     return result.rows
 }
 
@@ -87,7 +87,7 @@ async function updateDynamic(data, id) {
     // Adding id
     finalQuery += ` WHERE id = $${fields.length + 1} RETURNING id, name, email, phone_number, is_active, created_at, department_id, role_id `
     values.push(id)
-    console.log(finalQuery)
+
     // Query
     const result = await pool.query(finalQuery, values)
 

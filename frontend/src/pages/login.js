@@ -218,7 +218,6 @@ function bindEvents() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!validateEmail() | !validatePassword()) return;
-    console.log('[login] submit capturado — iniciando petición al backend');
     submitBtn.disabled = true;
     btnText.textContent = 'Ingresando...';
     if (btnArrow) btnArrow.style.display = 'none';
@@ -229,7 +228,6 @@ function bindEvents() {
         email:    emailInput.value.trim(),
         password: passwordInput.value,
       });
-      console.log('[login] PASO 1 — token recibido:', data?.token ? 'SÍ' : 'NO', data);
 
       // El backend solo devuelve el token JWT.
       // Decodificamos el payload (parte del medio) para sacar el id del usuario.
@@ -241,14 +239,12 @@ function bindEvents() {
       } catch {
         // si el token tiene formato inesperado, payload queda vacío
       }
-      console.log('[login] PASO 2 — payload del JWT:', payload);
 
       // Guardamos el token YA para que la siguiente petición pueda usarlo en el header
       localStorage.setItem('token', data.token);
 
       // Hacemos una segunda llamada para obtener el perfil completo del usuario (incluye roleName)
       const userInfo = await getUserById(payload.id);
-      console.log('[login] PASO 3 — userInfo completo:', JSON.stringify(userInfo, null, 2));
 
       // Guardamos la sesión completa.
       // Si el backend aún no devuelve roleName, usamos 'admin_gen' como temporal
@@ -262,11 +258,9 @@ function bindEvents() {
         departmentId: userInfo.departmentId || payload.departmentId || '',
         token:        data.token,
       });
-      console.log('[login] PASO 4 — sesión guardada, rol:', roleToSave);
 
       // Redirigimos según el rol obtenido del servidor
       const role = roleToSave;
-      console.log('[login] PASO 5 — redirigiendo a:', role === 'visualizer' ? '#/perfil' : '#/');
       window.location.hash = role === 'visualizer' ? '#/perfil' : '#/';
 
     } catch (err) {
