@@ -36,7 +36,57 @@ This aplication resolves problems about event management, visualization and most
 
 ### Frontend
 
-...
+frontend/
+├── API.md
+├── dist
+│   └── output.css
+├── index.html
+├── package.json
+├── package-lock.json
+├── postcss.config.js
+├── public
+│   ├── icons
+│   │   └── RoundedLogo.ico
+│   └── images
+│       ├── avatar.webp
+│       ├── logo.png
+│       └── RoundedLogo.png
+├── src
+│   ├── components
+│   │   ├── calendar.js
+│   │   ├── card.js
+│   │   ├── modal.js
+│   │   ├── navbar.js
+│   │   └── sidebar.js
+│   ├── main.js
+│   ├── pages
+│   │   ├── build.html
+│   │   ├── dashboard.js
+│   │   ├── event.js
+│   │   ├── home.js
+│   │   ├── login.js
+│   │   ├── notFound.js
+│   │   ├── profile.js
+│   │   ├── register.js
+│   │   ├── spaces.js
+│   │   └── usuarios.js
+│   ├── router.js
+│   ├── services
+│   │   └── api.js
+│   ├── store
+│   │   └── state.js
+│   ├── styles
+│   │   ├── input.css
+│   │   ├── output.css
+│   │   └── styles.css
+│   └── utils
+│       ├── helpers.js
+│       ├── layout.js
+│       ├── session.js
+│       └── toast.js
+├── styles.css
+└── tailwind.config.js
+
 
 ### Backend
 ```text
