@@ -230,21 +230,12 @@ export default async function Dashboard() {
 
                 </div>
 
-                <!-- Gráficas -->
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-borderSubtle">
-                        <h2 class="font-semibold text-textPrimary mb-1">Progreso por Departamento</h2>
-                        <p class="text-sm text-textSecondary mb-5">Metas, completados y pendientes por departamento</p>
-                        <div class="h-[300px]">
-                            <canvas id="departmentChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-borderSubtle">
-                        <h2 class="font-semibold text-textPrimary mb-1">Tendencia Mensual</h2>
-                        <p class="text-sm text-textSecondary mb-5">Eventos por mes según fecha de inicio</p>
-                        <div class="h-[300px]">
-                            <canvas id="trendChart"></canvas>
-                        </div>
+                <!-- Gráfica departamentos -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-borderSubtle">
+                    <h2 class="font-semibold text-textPrimary mb-1">Progreso por Departamento</h2>
+                    <p class="text-sm text-textSecondary mb-5">Metas, completados y pendientes por departamento</p>
+                    <div class="h-[300px]">
+                        <canvas id="departmentChart"></canvas>
                     </div>
                 </div>
 
@@ -266,8 +257,7 @@ export default async function Dashboard() {
     `;
 }
 
-function renderCharts({ pct, monthCount, topDisc, total, depMetrics }) {
-    const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function renderCharts({ pct, topDisc, total, depMetrics }) {
 
     // Cumplimiento doughnut
     new Chart(document.getElementById('progressChart'), {
@@ -305,22 +295,6 @@ function renderCharts({ pct, monthCount, topDisc, total, depMetrics }) {
         }
     });
 
-    // Tendencia mensual
-    new Chart(document.getElementById('trendChart'), {
-        type: 'line',
-        data: {
-            labels: MONTHS,
-            datasets: [{
-                label: 'Eventos',
-                data: monthCount,
-                borderColor: '#2965EB',
-                backgroundColor: 'rgba(41,101,235,0.12)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    });
 
     // Top 2 disciplinas (doughnuts)
     topDisc.forEach((disc, i) => {
