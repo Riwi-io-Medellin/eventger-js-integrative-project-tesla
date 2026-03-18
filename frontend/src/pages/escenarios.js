@@ -424,7 +424,7 @@ export async function initEscenarios() {
     ESC_SPACES = (spaces || []).map((sp) => ({
       id:          sp.id,
       name:        sp.name,
-      status:      sp.status || "activo",
+      status:      sp.status === 'active' ? 'activo' : sp.status === 'inactive' ? 'inactivo' : 'activo',
       scenario_id: sp.scenarioId || sp.scenario_id || "",
     }));
   } catch (err) {

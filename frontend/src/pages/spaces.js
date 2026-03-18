@@ -454,7 +454,7 @@ window.toggleSpStatus = async function (id) {
   if (idx === -1) return;
   const newStatus = SP_SPACES[idx].status === "activo" ? "inactivo" : "activo";
   try {
-    await patchSpace(id, { status: newStatus }); // PATCH /space/:id
+    await patchSpace(id, { status: newStatus === 'activo' ? 'active' : 'inactive' }); // PATCH /space/:id
     SP_SPACES[idx] = { ...SP_SPACES[idx], status: newStatus };
     toast("success", `Espacio ${newStatus === "activo" ? "activado" : "desactivado"}.`);
     renderSpPage();
@@ -483,7 +483,7 @@ export async function initSpaces() {
     const [scenarios, spaces] = await Promise.all([getScenarios(), getSpaces()]);
     // Convertimos camelCase del backend a snake_case interno
     SP_SCENARIOS = (scenarios || []).map((sc) => ({ id: sc.id, name: sc.name, location: sc.location || '' }));
-    SP_SPACES    = (spaces    || []).map((sp) => ({ id: sp.id, name: sp.name, description: sp.description || '', status: sp.status || 'activo', scenario_id: sp.scenarioId || sp.scenario_id || '' }));
+    SP_SPACES    = (spaces    || []).map((sp) => ({ id: sp.id, name: sp.name, description: sp.description || '', status: sp.status === 'active' ? 'activo' : sp.status === 'inactive' ? 'inactivo' : 'activo', scenario_id: sp.scenarioId || sp.scenario_id || '' }));
   } catch {
     toast("error", "No se pudieron cargar los espacios del servidor.");
   }
@@ -799,7 +799,7 @@ export async function initScenarios() {
       id:          sp.id,
       name:        sp.name,
       description: sp.description || '',
-      status:      sp.status      || 'activo',
+      status:      sp.status === 'active' ? 'activo' : sp.status === 'inactive' ? 'inactivo' : 'activo',
       scenario_id: sp.scenarioId  || sp.scenario_id || '',
     }));
   } catch {
