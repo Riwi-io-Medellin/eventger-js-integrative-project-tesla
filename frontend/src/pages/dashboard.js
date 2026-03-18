@@ -215,7 +215,12 @@ export default async function Dashboard() {
 
                     <!-- % Avance -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-borderSubtle flex flex-col items-center justify-center">
-                        <div class="w-[120px] h-[120px]"><canvas id="progressChart"></canvas></div>
+                        <div style="position:relative;width:120px;height:120px;">
+                            <canvas id="progressChart"></canvas>
+                            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                                <span style="font-size:1.375rem;font-weight:700;color:#0f172a;">${pct}%</span>
+                            </div>
+                        </div>
                         <p class="text-textSecondary text-sm mt-3">% Avance del Año</p>
                     </div>
 
