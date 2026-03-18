@@ -4,7 +4,7 @@ import Sidebar from "../components/sidebar.js";
 import { getSession, getInitials, getRoleName, clearSession } from "../utils/session.js";
 import { toast } from "../utils/toast.js";
 // Importamos las funciones de la API central para eventos
-import { getEvents, createEvent, updateEvent, deleteEvent, getScenarios, getSpaces } from "../services/api.js";
+import { getEvents, createEvent, updateEvent, deleteEvent, getScenarios, getSpaces, getDisciplines } from "../services/api.js";
 
 // cargo Sonner desde CDN si todavía no está en window
 function loadSonner() {
@@ -74,7 +74,7 @@ if (!document.getElementById("eventos-style")) {
     .ev-filter-pill:hover { border-color:#2563eb;color:#2563eb; }
     .ev-filter-pill.active { background:#eff6ff;border-color:#2563eb;color:#2563eb; }
     .hide-mobile { display:none!important; }
-    .ev-main-content { padding:1rem; }
+    .ev-main-content { padding:1rem; overflow-y:auto; min-height:0; }
     .ev-page-title { font-size:1.25rem; }
     .ev-header { padding:0 1rem; }
     @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
@@ -102,17 +102,8 @@ let MOCK_SCENARIOS = [];
 // Se llena desde el backend en initEvent() con GET /space
 let MOCK_SPACES = [];
 
-// 🔌 await api.getDisciplines()
-const MOCK_DISCIPLINES = [
-  { id: "di-1", name: "Fútbol" },
-  { id: "di-2", name: "Natación" },
-  { id: "di-3", name: "Atletismo" },
-  { id: "di-4", name: "Baloncesto" },
-  { id: "di-5", name: "Ciclismo" },
-  { id: "di-6", name: "Voleibol" },
-  { id: "di-7", name: "Tenis" },
-  { id: "di-8", name: "Microfútbol" },
-];
+// Se llena desde el backend en initEvent() con GET /discipline
+let DISCIPLINES = [];
 
 let evView = "list";
 let evSearch = "";
@@ -283,7 +274,7 @@ function renderList(events) {
           <span style="color:#475569;">${scenarioName}</span><br>
           <span style="color:#94a3b8;font-size:0.775rem;">${spaceName}</span>
         </div></td>
-        <td class="hide-mobile" style="color:#475569;font-size:0.875rem;">${nameOf(MOCK_DISCIPLINES, ev.discipline_id)}</td>
+        <td class="hide-mobile" style="color:#475569;font-size:0.875rem;">${nameOf(DISCIPLINES, ev.discipline_id)}</td>
         <td class="hide-mobile"><span style="display:inline-flex;align-items:center;padding:0.2rem 0.65rem;border-radius:0.375rem;font-size:0.75rem;font-weight:600;background:${ty.bg};color:${ty.color};">${ty.label}</span></td>
         <td><span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.7rem;border-radius:9999px;font-size:0.75rem;font-weight:600;background:${st.bg};color:${st.color};">
           <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:${st.dot};flex-shrink:0;"></span>${st.label}
@@ -353,7 +344,7 @@ function renderCards(events) {
             ev.discipline_id
               ? `<div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;color:#475569;">
             <svg fill="none" stroke="${acc}" viewBox="0 0 24 24" width="13" height="13" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            ${nameOf(MOCK_DISCIPLINES, ev.discipline_id)}</div>`
+            ${nameOf(DISCIPLINES, ev.discipline_id)}</div>`
               : ""
           }
         </div>
@@ -429,7 +420,7 @@ function buildDisciplineOptions(selectedId) {
   const none = `<option value="">Sin disciplina</option>`;
   return (
     none +
-    MOCK_DISCIPLINES.map(
+    DISCIPLINES.map(
       (d) =>
         `<option value="${d.id}" ${d.id === selectedId ? "selected" : ""}>${d.name}</option>`,
     ).join("")
@@ -673,7 +664,7 @@ function getFiltered() {
       ev.title.toLowerCase().includes(q) ||
       nameOf(MOCK_SCENARIOS, ev.scenario_id).toLowerCase().includes(q) ||
       nameOf(MOCK_SPACES, ev.space_id).toLowerCase().includes(q) ||
-      nameOf(MOCK_DISCIPLINES, ev.discipline_id).toLowerCase().includes(q),
+      nameOf(DISCIPLINES, ev.discipline_id).toLowerCase().includes(q),
   );
 }
 
@@ -699,7 +690,7 @@ function renderPage() {
             <p style="font-size:0.8125rem;font-weight:600;color:#1e293b;margin:0;line-height:1.2;">${sesName}</p>
             <p style="font-size:0.7rem;color:#64748b;margin:0;">${sesRole}</p>
           </div>
-          <button id="header-logout-btn" title="Cerrar sesión"
+          <button id="header-logout-btn" title="Cerrar sesión" onclick="handleLogout()"
             style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:0.375rem;border-radius:0.5rem;display:flex;align-items:center;transition:color 0.15s,background 0.15s;"
             onmouseover="this.style.color='#ef4444';this.style.background='#fef2f2'"
             onmouseout="this.style.color='#94a3b8';this.style.background='none'">
@@ -946,6 +937,9 @@ async function submitEvForm(e) {
 
   if (!valid) return;
 
+  const submitBtn = document.querySelector("#ev-form button[type='submit']");
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Guardando..."; }
+
   const isEdit = evModal === "edit";
   const payload = {
     id: evSelected?.id || String(Date.now()),
@@ -983,7 +977,8 @@ async function submitEvForm(e) {
       if (idx > -1) MOCK_EVENTS[idx] = payload;
     } catch (err) {
       toast("error", err.message || "Error al actualizar el evento.");
-      return; // detenemos la ejecución si el servidor rechazó el cambio
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Guardar cambios"; }
+      return;
     }
   } else {
     try {
@@ -994,6 +989,7 @@ async function submitEvForm(e) {
       MOCK_EVENTS.unshift(payload);
     } catch (err) {
       toast("error", err.message || "Error al crear el evento.");
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = isEdit ? "Guardar cambios" : "Crear evento"; }
       return;
     }
   }
@@ -1069,25 +1065,26 @@ export default async function initEvent() {
   // Cargamos eventos, escenarios y espacios en paralelo — los tres son necesarios
   // para mostrar el listado y para que el formulario use IDs reales del backend
   try {
-    const [apiEvents, scenarios, spaces] = await Promise.all([
-      getEvents(),     // GET /event
-      getScenarios(),  // GET /scenario
-      getSpaces(),     // GET /space
+    const [apiEvents, scenarios, spaces, disciplines] = await Promise.all([
+      getEvents(),       // GET /event
+      getScenarios(),    // GET /scenario
+      getSpaces(),       // GET /space
+      getDisciplines(),  // GET /discipline
     ]);
 
-    // Eventos: camelCase (API) → snake_case (frontend)
+    // Eventos: el backend devuelve snake_case directo de la BD
     MOCK_EVENTS = (apiEvents || []).map((ev) => ({
       id:            ev.id,
       title:         ev.title,
       description:   ev.description   || '',
-      start_date:    ev.startDate,
-      finish_date:   ev.finishDate,
-      is_active:     ev.isActive,
-      discipline_id: ev.disciplineId  || null,
-      scenario_id:   ev.scenarioId,
-      space_id:      ev.spaceId,
-      creator_id:    ev.creatorId     || '',
-      created_at:    ev.createdAt     || '',
+      start_date:    ev.start_date    || ev.startDate   || '',
+      finish_date:   ev.finish_date   || ev.finishDate  || '',
+      is_active:     ev.is_active     !== undefined ? ev.is_active  : ev.isActive,
+      discipline_id: ev.discipline_id || ev.disciplineId || null,
+      scenario_id:   ev.scenario_id   || ev.scenarioId  || '',
+      space_id:      ev.space_id      || ev.spaceId     || '',
+      creator_id:    ev.creator_id    || ev.creatorId   || '',
+      created_at:    ev.created_at    || ev.createdAt   || '',
     }));
 
     // Escenarios: necesarios para el selector del formulario y para mostrar nombres
@@ -1095,6 +1092,12 @@ export default async function initEvent() {
       id:       sc.id,
       name:     sc.name,
       location: sc.location || '',
+    }));
+
+    // Disciplinas: selector del formulario y para mostrar nombres en tarjetas
+    DISCIPLINES = (disciplines || []).map((d) => ({
+      id:   d.id,
+      name: d.name,
     }));
 
     // Espacios: necesarios para filtrar por escenario en el formulario

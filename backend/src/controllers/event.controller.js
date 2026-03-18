@@ -84,14 +84,14 @@ async function create(req, res, next) {
         // Calling service
         const response = await eventService.create({...req.body, creatorId: req.userId})
 
-        // Send email notification
-        await notifyUsersEmail(response[0])
-
-        //Send Whatsapp notification
-        await notifyUsersPhone(response[0])
-
-        //Create Notification
-        await createNotification(response[0].id)
+        // Notifications — wrapped so a failure doesn't abort the 201 response
+        try {
+            await notifyUsersEmail(response[0])
+            await notifyUsersPhone(response[0])
+            await createNotification(response[0].id)
+        } catch (notifErr) {
+            console.error('[notifications] error after event creation:', notifErr.message)
+        }
 
         // Returning response
         res.status(201).json(response)

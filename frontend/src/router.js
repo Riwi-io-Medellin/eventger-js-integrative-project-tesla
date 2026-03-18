@@ -7,7 +7,9 @@ import { initSpaces } from "./pages/spaces.js";
 import { initEscenarios } from "./pages/escenarios.js";
 import { initLogin }    from "./pages/login.js";
 import { initRegister } from "./pages/register.js";
-import { initNotFound } from "./pages/notFound.js";
+import { initForgot }         from "./pages/forgot.js";
+import { initResetPassword }  from "./pages/resetPassword.js";
+import { initNotFound }       from "./pages/notFound.js";
 import { getSession, clearSession } from "./utils/session.js";
 
 // null = pública | array = roles permitidos (admin_gen siempre pasa)
@@ -21,13 +23,17 @@ const ROUTES = {
     "/escenarios": { handler: initEscenarios, roles: ['admin_gen','admin_spa'] },
     "/login":      { handler: initLogin,     roles: null },
     "/register":   { handler: initRegister,  roles: null },
+    "/forgot":          { handler: initForgot,         roles: null },
+    "/reset-password":  { handler: initResetPassword,  roles: null },
 };
 
 // Extrae la ruta del hash: "#/dashboard" → "/dashboard", "" o "#/" → "/"
+// Ignora query params: "#/reset-password?token=xxx" → "/reset-password"
 function getPath() {
     const hash = window.location.hash;
     if (!hash || hash === "#" || hash === "#/") return "/";
-    return hash.slice(1); // quita el "#"
+    const path = hash.slice(1); // quita el "#"
+    return path.split("?")[0];  // quita query string
 }
 
 export function navigate(path) {

@@ -35,8 +35,30 @@ This aplication resolves problems about event management, visualization and most
 ## 📁 Project Structure
 
 ### Frontend
-
-...
+```text
+frontend/                 # Frontend client folder (Vanilla JS SPA)
+├── dist/                 # Compiled assets (Production-ready CSS)
+├── node_modules/         # Installed npm packages (Tailwind, PostCSS)
+├── public/               # Static assets
+│   ├── icons/            # App favicons and small icons
+│   └── images/           # Brand logos, banners, and user avatars
+├── src/                  # All frontend source code
+│   ├── components/       # Reusable UI pieces (Navbar, Sidebar, Modals)
+│   ├── pages/            # View components (Home, Dashboard, Login, etc.)
+│   ├── services/         # API client logic (Fetch requests to backend)
+│   ├── store/            # Global state management (Auth status, user info)
+│   ├── styles/           # Tailwind source CSS and PostCSS inputs
+│   ├── utils/            # Helper functions (Session, Toasts, Formatters)
+│   ├── main.js           # Main entry point that initializes the app
+│   └── router.js         # Client-side routing logic (SPA Handler)
+├── .gitignore            # Files to ignore in git (node_modules, .env)
+├── API.md                # Frontend-specific API integration notes
+├── index.html            # Single entry point for the entire application
+├── package-lock.json     # Lock file for npm dependencies
+├── package.json          # Project metadata and build scripts
+├── postcss.config.js     # PostCSS configuration for Tailwind
+└── tailwind.config.js    # Tailwind CSS custom themes and plugins
+ ``` 
 
 ### Backend
 ```text

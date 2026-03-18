@@ -18,12 +18,18 @@ For example:
     AND
     2026/03/15 > 2026/03/13 -> Means that the event starts before the original end date
 */
-async function checkDates(initDate, finishDate) {
+async function checkDates(initDate, finishDate, spaceId = null) {
+    if (spaceId) {
+        const result = await pool.query(
+            `SELECT * FROM event WHERE space_id = $1 AND start_date < $2 AND finish_date > $3`,
+            [spaceId, finishDate, initDate]
+        )
+        return result.rows
+    }
     const result = await pool.query(
         `SELECT * FROM event WHERE start_date < $1 AND finish_date > $2`,
         [finishDate, initDate]
     )
-
     return result.rows
 }
 

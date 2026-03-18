@@ -42,8 +42,18 @@ async function request(endpoint, method = 'GET', body = null, auth = false) {
         options.body = JSON.stringify(body); // convertimos el objeto JS a texto JSON
     }
 
-    // Hacemos la petición y esperamos la respuesta
-    const response = await fetch(`${BASE_URL}${endpoint}`, options);
+    // Hacemos la petición con timeout de 20s para no quedar colgados
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 20000);
+    let response;
+    try {
+        response = await fetch(`${BASE_URL}${endpoint}`, { ...options, signal: controller.signal });
+    } catch (fetchErr) {
+        if (fetchErr.name === 'AbortError') throw new Error('La solicitud tardó demasiado. Intenta de nuevo.');
+        throw fetchErr;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 
     // Si el servidor responde con un error (4xx o 5xx), lanzamos un error con el mensaje del servidor
     if (!response.ok) {
@@ -186,6 +196,20 @@ export function patchUser(id, fields) {
 export function deleteUser(id) {
     // DELETE /user/:id
     return request(`/user/${id}`, 'DELETE', null, true);
+}
+
+// ─── Disciplinas ───────────────────────────────────────────────────────────────
+
+export function getDisciplines() {
+    // GET /discipline — ruta pública, no requiere token
+    return request('/discipline', 'GET', null, false);
+}
+
+// ─── Departamentos ─────────────────────────────────────────────────────────────
+
+export function getDepartments() {
+    // GET /department — ruta pública, no requiere token
+    return request('/department', 'GET', null, false);
 }
 
 // ─── Eventos ───────────────────────────────────────────────────────────────────
@@ -344,12 +368,6 @@ export function deleteScenario(id) {
     return request(`/scenario/${id}`, 'DELETE', null, true);
 }
 
-// ─── Departamentos ─────────────────────────────────────────────────────────────
-
-/** Obtiene todos los departamentos disponibles. */
-export function getDepartments() {
-    return request('/department', 'GET', null, true);
-}
 
 // ─── Perfil ────────────────────────────────────────────────────────────────────
 
@@ -361,6 +379,16 @@ export function getDepartments() {
 export function getEventsByUser(userId) {
     // GET /profile/:id — no requiere token según las rutas del backend
     return request(`/profile/${userId}`, 'GET', null, false);
+}
+
+// ─── Dashboard ─────────────────────────────────────────────────────────────
+
+/**
+ * Obtiene las métricas generales del dashboard para un año dado.
+ * @param {number|string} year
+ */
+export function getDashboardMetrics(year) {
+    return request(`/dashboard/${year}`, 'GET', null, true);
 }
 
 // ─── Notificaciones ────────────────────────────────────────────────────────────
@@ -379,6 +407,6 @@ export function getNotifications(userId) {
  * @param {string} notifId
  */
 export function markNotificationRead(notifId) {
-    // PATCH /notification/:id
-    return request(`/notification/${notifId}`, 'PATCH', null, true);
+    // PATCH /notification/:id — el backend exige { is_read: true } en el body
+    return request(`/notification/${notifId}`, 'PATCH', { is_read: true }, true);
 }
