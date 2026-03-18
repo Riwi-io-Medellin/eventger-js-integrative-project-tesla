@@ -102,7 +102,7 @@ async function resetRequest(email) {
     const token = jwt.generateTemp({id: user[0].id}, "10m")
 
     // Send email — wrapped so a delivery failure doesn't abort the response
-    const url = `${process.env.HOST_URL}/auth/reset-password?token=${token}`
+    const url = `${process.env.HOST_URL}/#/reset-password?token=${token}`
     const html = `
             <h2>Password Reset</h2>
 
