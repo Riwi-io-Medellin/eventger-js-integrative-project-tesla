@@ -253,7 +253,7 @@ function bindEvents() {
       // Guardamos la sesión completa.
       // Si el backend aún no devuelve roleName, usamos 'admin_gen' como temporal
       // para poder navegar y probar las vistas. Quitar este fallback cuando el backend lo implemente.
-      const roleToSave = userInfo.role?.name || userInfo.roleName || 'admin_gen';
+      const roleToSave = payload.roleName || userInfo.role?.name || userInfo.roleName || 'admin_gen';
       setSession({
         id:           userInfo.id           || payload.id,
         name:         userInfo.name         || payload.name  || '',

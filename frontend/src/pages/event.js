@@ -4,7 +4,7 @@ import Sidebar from "../components/sidebar.js";
 import { getSession, getInitials, getRoleName, clearSession } from "../utils/session.js";
 import { toast } from "../utils/toast.js";
 // Importamos las funciones de la API central para eventos
-import { getEvents, createEvent, updateEvent, deleteEvent, getScenarios, getSpaces } from "../services/api.js";
+import { getEvents, createEvent, updateEvent, deleteEvent, getScenarios, getSpaces, getDisciplines } from "../services/api.js";
 
 // cargo Sonner desde CDN si todavía no está en window
 function loadSonner() {
@@ -102,17 +102,8 @@ let MOCK_SCENARIOS = [];
 // Se llena desde el backend en initEvent() con GET /space
 let MOCK_SPACES = [];
 
-// 🔌 await api.getDisciplines()
-const MOCK_DISCIPLINES = [
-  { id: "di-1", name: "Fútbol" },
-  { id: "di-2", name: "Natación" },
-  { id: "di-3", name: "Atletismo" },
-  { id: "di-4", name: "Baloncesto" },
-  { id: "di-5", name: "Ciclismo" },
-  { id: "di-6", name: "Voleibol" },
-  { id: "di-7", name: "Tenis" },
-  { id: "di-8", name: "Microfútbol" },
-];
+// Se llena desde el backend en initEvent() con GET /discipline
+let DISCIPLINES = [];
 
 let evView = "list";
 let evSearch = "";
@@ -283,7 +274,7 @@ function renderList(events) {
           <span style="color:#475569;">${scenarioName}</span><br>
           <span style="color:#94a3b8;font-size:0.775rem;">${spaceName}</span>
         </div></td>
-        <td class="hide-mobile" style="color:#475569;font-size:0.875rem;">${nameOf(MOCK_DISCIPLINES, ev.discipline_id)}</td>
+        <td class="hide-mobile" style="color:#475569;font-size:0.875rem;">${nameOf(DISCIPLINES, ev.discipline_id)}</td>
         <td class="hide-mobile"><span style="display:inline-flex;align-items:center;padding:0.2rem 0.65rem;border-radius:0.375rem;font-size:0.75rem;font-weight:600;background:${ty.bg};color:${ty.color};">${ty.label}</span></td>
         <td><span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.7rem;border-radius:9999px;font-size:0.75rem;font-weight:600;background:${st.bg};color:${st.color};">
           <span style="width:0.45rem;height:0.45rem;border-radius:50%;background:${st.dot};flex-shrink:0;"></span>${st.label}
@@ -353,7 +344,7 @@ function renderCards(events) {
             ev.discipline_id
               ? `<div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;color:#475569;">
             <svg fill="none" stroke="${acc}" viewBox="0 0 24 24" width="13" height="13" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            ${nameOf(MOCK_DISCIPLINES, ev.discipline_id)}</div>`
+            ${nameOf(DISCIPLINES, ev.discipline_id)}</div>`
               : ""
           }
         </div>
@@ -429,7 +420,7 @@ function buildDisciplineOptions(selectedId) {
   const none = `<option value="">Sin disciplina</option>`;
   return (
     none +
-    MOCK_DISCIPLINES.map(
+    DISCIPLINES.map(
       (d) =>
         `<option value="${d.id}" ${d.id === selectedId ? "selected" : ""}>${d.name}</option>`,
     ).join("")
@@ -673,7 +664,7 @@ function getFiltered() {
       ev.title.toLowerCase().includes(q) ||
       nameOf(MOCK_SCENARIOS, ev.scenario_id).toLowerCase().includes(q) ||
       nameOf(MOCK_SPACES, ev.space_id).toLowerCase().includes(q) ||
-      nameOf(MOCK_DISCIPLINES, ev.discipline_id).toLowerCase().includes(q),
+      nameOf(DISCIPLINES, ev.discipline_id).toLowerCase().includes(q),
   );
 }
 
@@ -1069,10 +1060,11 @@ export default async function initEvent() {
   // Cargamos eventos, escenarios y espacios en paralelo — los tres son necesarios
   // para mostrar el listado y para que el formulario use IDs reales del backend
   try {
-    const [apiEvents, scenarios, spaces] = await Promise.all([
-      getEvents(),     // GET /event
-      getScenarios(),  // GET /scenario
-      getSpaces(),     // GET /space
+    const [apiEvents, scenarios, spaces, disciplines] = await Promise.all([
+      getEvents(),       // GET /event
+      getScenarios(),    // GET /scenario
+      getSpaces(),       // GET /space
+      getDisciplines(),  // GET /discipline
     ]);
 
     // Eventos: camelCase (API) → snake_case (frontend)
@@ -1095,6 +1087,12 @@ export default async function initEvent() {
       id:       sc.id,
       name:     sc.name,
       location: sc.location || '',
+    }));
+
+    // Disciplinas: selector del formulario y para mostrar nombres en tarjetas
+    DISCIPLINES = (disciplines || []).map((d) => ({
+      id:   d.id,
+      name: d.name,
     }));
 
     // Espacios: necesarios para filtrar por escenario en el formulario

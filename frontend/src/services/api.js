@@ -188,6 +188,13 @@ export function deleteUser(id) {
     return request(`/user/${id}`, 'DELETE', null, true);
 }
 
+// ─── Disciplinas ───────────────────────────────────────────────────────────────
+
+export function getDisciplines() {
+    // GET /discipline — ruta pública, no requiere token
+    return request('/discipline', 'GET', null, false);
+}
+
 // ─── Eventos ───────────────────────────────────────────────────────────────────
 
 /**

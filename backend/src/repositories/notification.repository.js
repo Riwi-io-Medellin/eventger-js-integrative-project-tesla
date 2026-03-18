@@ -22,8 +22,8 @@ async function getNames(id){
                     on e.scenario_id = s.id
                     inner join public.space spa
                     on e.space_id = spa.id 
-                    inner join public.discipline d
-                    on e.discipline_id = d.id 
+                    left join public.discipline d
+                    on e.discipline_id = d.id
                     inner join public.user u
                     on e.creator_id = u.id
                     where e.id = $1;`
