@@ -155,7 +155,7 @@ export default function Navbar() {
                 </button>
 
                 <!-- Panel de notificaciones -->
-                <div id="notif-panel" style="display:none;position:absolute;top:calc(100% + 0.5rem);right:0;width:20rem;background:#fff;border:1px solid #e2e8f0;border-radius:0.75rem;box-shadow:0 10px 30px -5px rgba(0,0,0,0.15);z-index:150;overflow:hidden;">
+                <div id="notif-panel" style="display:none;position:fixed;top:4.25rem;right:1.25rem;width:20rem;background:#fff;border:1px solid #e2e8f0;border-radius:0.75rem;box-shadow:0 10px 30px -5px rgba(0,0,0,0.15);z-index:150;overflow:hidden;">
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:0.875rem 1rem;border-bottom:1px solid #f1f5f9;">
                         <span style="font-size:0.875rem;font-weight:700;color:#0f172a;">Notificaciones</span>
                     </div>
