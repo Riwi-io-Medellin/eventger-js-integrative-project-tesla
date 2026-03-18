@@ -1102,7 +1102,7 @@ export default async function initEvent() {
       id:          sp.id,
       name:        sp.name,
       description: sp.description || '',
-      status:      sp.status      || 'activo',
+      status:      sp.status === 'active' ? 'activo' : sp.status === 'inactive' ? 'inactivo' : (sp.status || 'activo'),
       scenario_id: sp.scenarioId  || sp.scenario_id || '',
     }));
 
