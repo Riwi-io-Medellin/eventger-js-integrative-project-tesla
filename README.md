@@ -35,58 +35,30 @@ This aplication resolves problems about event management, visualization and most
 ## 📁 Project Structure
 
 ### Frontend
-
-frontend/
-├── API.md
-├── dist
-│   └── output.css
-├── index.html
-├── package.json
-├── package-lock.json
-├── postcss.config.js
-├── public
-│   ├── icons
-│   │   └── RoundedLogo.ico
-│   └── images
-│       ├── avatar.webp
-│       ├── logo.png
-│       └── RoundedLogo.png
-├── src
-│   ├── components
-│   │   ├── calendar.js
-│   │   ├── card.js
-│   │   ├── modal.js
-│   │   ├── navbar.js
-│   │   └── sidebar.js
-│   ├── main.js
-│   ├── pages
-│   │   ├── build.html
-│   │   ├── dashboard.js
-│   │   ├── event.js
-│   │   ├── home.js
-│   │   ├── login.js
-│   │   ├── notFound.js
-│   │   ├── profile.js
-│   │   ├── register.js
-│   │   ├── spaces.js
-│   │   └── usuarios.js
-│   ├── router.js
-│   ├── services
-│   │   └── api.js
-│   ├── store
-│   │   └── state.js
-│   ├── styles
-│   │   ├── input.css
-│   │   ├── output.css
-│   │   └── styles.css
-│   └── utils
-│       ├── helpers.js
-│       ├── layout.js
-│       ├── session.js
-│       └── toast.js
-├── styles.css
-└── tailwind.config.js
-
+```text
+frontend/                 # Frontend client folder (Vanilla JS SPA)
+├── dist/                 # Compiled assets (Production-ready CSS)
+├── node_modules/         # Installed npm packages (Tailwind, PostCSS)
+├── public/               # Static assets
+│   ├── icons/            # App favicons and small icons
+│   └── images/           # Brand logos, banners, and user avatars
+├── src/                  # All frontend source code
+│   ├── components/       # Reusable UI pieces (Navbar, Sidebar, Modals)
+│   ├── pages/            # View components (Home, Dashboard, Login, etc.)
+│   ├── services/         # API client logic (Fetch requests to backend)
+│   ├── store/            # Global state management (Auth status, user info)
+│   ├── styles/           # Tailwind source CSS and PostCSS inputs
+│   ├── utils/            # Helper functions (Session, Toasts, Formatters)
+│   ├── main.js           # Main entry point that initializes the app
+│   └── router.js         # Client-side routing logic (SPA Handler)
+├── .gitignore            # Files to ignore in git (node_modules, .env)
+├── API.md                # Frontend-specific API integration notes
+├── index.html            # Single entry point for the entire application
+├── package-lock.json     # Lock file for npm dependencies
+├── package.json          # Project metadata and build scripts
+├── postcss.config.js     # PostCSS configuration for Tailwind
+└── tailwind.config.js    # Tailwind CSS custom themes and plugins
+ ``` 
 
 ### Backend
 ```text
