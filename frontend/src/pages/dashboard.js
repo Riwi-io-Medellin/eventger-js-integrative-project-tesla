@@ -70,7 +70,8 @@ export default async function Dashboard() {
     const currentYear = new Date().getFullYear();
     let metrics = { total_goal: 0, completed_events: 0, pending_events: 0, percentage_advance: 0 };
     try {
-        metrics = await getDashboardMetrics(currentYear) || metrics;
+        const res = await getDashboardMetrics(currentYear);
+        metrics = res?.general_metrics || metrics;
     } catch { /* si falla, mostramos ceros */ }
 
     const pct = Math.round(metrics.percentage_advance || 0);
