@@ -1,13 +1,7 @@
 const express = require("express")
-const cors = require('cors')
 const app = express()
 
 require("dotenv").config() // Dot-Env Use
-
-// Configuration to use in frontend
-app.use(cors({
-  origin: 'http://localhost:5173' 
-}))
 
 const cron = require('node-cron')
 const {reminderService, reminderPhoneService} = require('./src/services/notification.service.js')
