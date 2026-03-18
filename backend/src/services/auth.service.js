@@ -99,9 +99,9 @@ async function resetRequest(email) {
     if(user.length == 0) return {message: "If the email exists, a link to reset the password has been sent."};
 
     // Create JWT Token
-    const token = jwt.generateTemp({id: user.id}, "10m")
+    const token = jwt.generateTemp({id: user[0].id}, "10m")
 
-    // Send email
+    // Send email — wrapped so a delivery failure doesn't abort the response
     const url = `${process.env.HOST_URL}/auth/reset-password?token=${token}`
     const html = `
             <h2>Password Reset</h2>
@@ -115,11 +115,15 @@ async function resetRequest(email) {
             <p>If you don't request a reset password, please ignore this email.</p>
         `
 
-    await nodemailer.sendImportant({
-        addressee: email,
-        subject: "Reseting password - Eventger JS",
-        description: html
-    })
+    try {
+        await nodemailer.sendImportant({
+            addressee: email,
+            subject: "Reseting password - Eventger JS",
+            description: html
+        })
+    } catch (mailErr) {
+        console.error('[resetRequest] email delivery failed:', mailErr.message)
+    }
 
     // Returning response
     return {message: "If the email exists, a link to reset the password has been sent."}
