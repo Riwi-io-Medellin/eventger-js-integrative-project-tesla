@@ -86,7 +86,7 @@ async function create(req, res, next) {
 
         // Notifications — wrapped so a failure doesn't abort the 201 response
         try {
-            await notifyUsersEmail(response[0])
+            //await notifyUsersEmail(response[0])
             await notifyUsersPhone(response[0])
             await createNotification(response[0].id)
         } catch (notifErr) {
