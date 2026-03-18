@@ -397,6 +397,6 @@ export function getNotifications(userId) {
  * @param {string} notifId
  */
 export function markNotificationRead(notifId) {
-    // PATCH /notification/:id
-    return request(`/notification/${notifId}`, 'PATCH', null, true);
+    // PATCH /notification/:id — el backend exige { is_read: true } en el body
+    return request(`/notification/${notifId}`, 'PATCH', { is_read: true }, true);
 }
