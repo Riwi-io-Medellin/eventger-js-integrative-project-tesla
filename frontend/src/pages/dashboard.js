@@ -69,9 +69,13 @@ export default async function Dashboard() {
     // ── Métricas del dashboard (endpoint /dashboard/:year) ──────────────────
     const currentYear = new Date().getFullYear();
     let metrics = { total_goal: 0, completed_events: 0, pending_events: 0, percentage_advance: 0 };
+    let depMetrics = [];
     try {
         const res = await getDashboardMetrics(currentYear);
         metrics = res?.general_metrics || metrics;
+        // general_dep_metrics es un objeto { "NombreDep": { name, department_goals, events_completed, events_pendign } }
+        const raw = res?.general_dep_metrics || {};
+        depMetrics = Object.values(raw);
     } catch { /* si falla, mostramos ceros */ }
 
     const pct = Math.round(metrics.percentage_advance || 0);
@@ -104,7 +108,7 @@ export default async function Dashboard() {
         .slice(0, 2);
 
     // ── Charts data (disponible en closure para renderCharts) ───────────────
-    const chartsData = { pct, discLabels, discData, monthCount, topDisc, total };
+    const chartsData = { pct, discLabels, discData, monthCount, topDisc, total, depMetrics };
 
     // ── Módulos ─────────────────────────────────────────────────────────────
     const moduleCards = MODULES.map(m => `
@@ -229,8 +233,8 @@ export default async function Dashboard() {
                 <!-- Gráficas -->
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-borderSubtle">
-                        <h2 class="font-semibold text-textPrimary mb-1">Eventos por Disciplina</h2>
-                        <p class="text-sm text-textSecondary mb-5">Distribución de eventos según disciplina</p>
+                        <h2 class="font-semibold text-textPrimary mb-1">Progreso por Departamento</h2>
+                        <p class="text-sm text-textSecondary mb-5">Metas, completados y pendientes por departamento</p>
                         <div class="h-[300px]">
                             <canvas id="departmentChart"></canvas>
                         </div>
@@ -262,7 +266,7 @@ export default async function Dashboard() {
     `;
 }
 
-function renderCharts({ pct, discLabels, discData, monthCount, topDisc, total }) {
+function renderCharts({ pct, monthCount, topDisc, total, depMetrics }) {
     const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
     // Cumplimiento doughnut
@@ -278,19 +282,27 @@ function renderCharts({ pct, discLabels, discData, monthCount, topDisc, total })
         }
     });
 
-    // Eventos por disciplina
+    // Progreso por departamento (agrupado: metas / completados / pendientes)
+    const depLabels    = depMetrics.length ? depMetrics.map(d => d.name) : ['Sin datos'];
+    const depGoals     = depMetrics.length ? depMetrics.map(d => d.department_goals)  : [0];
+    const depCompleted = depMetrics.length ? depMetrics.map(d => d.events_completed)  : [0];
+    const depPending   = depMetrics.length ? depMetrics.map(d => d.events_pendign)    : [0];
+
     new Chart(document.getElementById('departmentChart'), {
         type: 'bar',
         data: {
-            labels: discLabels.length ? discLabels : ['Sin datos'],
-            datasets: [{
-                label: 'Eventos',
-                data: discData.length ? discData : [0],
-                backgroundColor: '#3DA442',
-                borderRadius: 6
-            }]
+            labels: depLabels,
+            datasets: [
+                { label: 'Meta',        data: depGoals,     backgroundColor: '#93c5fd', borderRadius: 4 },
+                { label: 'Completados', data: depCompleted, backgroundColor: '#3DA442', borderRadius: 4 },
+                { label: 'Pendientes',  data: depPending,   backgroundColor: '#f87171', borderRadius: 4 },
+            ]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+            scales: { x: { ticks: { font: { size: 11 } } } }
+        }
     });
 
     // Tendencia mensual
