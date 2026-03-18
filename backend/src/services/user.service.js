@@ -57,7 +57,7 @@ async function add(data) {
     }
 
     // Asign role ID
-    const roleId = await roleRepository.findByName(roleName)
+    const roleId = (await roleRepository.findByName(roleName)).id
 
     // Hash the password
     const passwordHash = await hash.generate(password)

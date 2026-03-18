@@ -3,8 +3,6 @@ const app = express()
 
 require("dotenv").config() // Dot-Env Use
 
-// Configuration to use in frontend
-
 const cron = require('node-cron')
 const {reminderService, reminderPhoneService} = require('./src/services/notification.service.js')
 
