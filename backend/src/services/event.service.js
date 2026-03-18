@@ -51,7 +51,7 @@ async function create(data) {
     // Checking the date isn't busy
     const eventConflict = await eventRepository.checkDates(startDate, finishDate)
 
-    if(eventConflict.length > 1) {
+    if(eventConflict.length > 0) {
         const err = new Error("Event time conflict")
         err.status = 409 // HTTP Conflict Code
 

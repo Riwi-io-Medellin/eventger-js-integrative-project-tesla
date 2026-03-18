@@ -937,6 +937,9 @@ async function submitEvForm(e) {
 
   if (!valid) return;
 
+  const submitBtn = document.querySelector("#ev-form button[type='submit']");
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Guardando..."; }
+
   const isEdit = evModal === "edit";
   const payload = {
     id: evSelected?.id || String(Date.now()),
@@ -974,7 +977,8 @@ async function submitEvForm(e) {
       if (idx > -1) MOCK_EVENTS[idx] = payload;
     } catch (err) {
       toast("error", err.message || "Error al actualizar el evento.");
-      return; // detenemos la ejecución si el servidor rechazó el cambio
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Guardar cambios"; }
+      return;
     }
   } else {
     try {
@@ -985,6 +989,7 @@ async function submitEvForm(e) {
       MOCK_EVENTS.unshift(payload);
     } catch (err) {
       toast("error", err.message || "Error al crear el evento.");
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = isEdit ? "Guardar cambios" : "Crear evento"; }
       return;
     }
   }
