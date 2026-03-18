@@ -390,8 +390,7 @@ window.saveSpModal = async function () {
 
   if (!valid) return;
 
-  // Formato camelCase que espera la API
-  const apiData = { name, description: desc, status, scenarioId: scenario_id };
+  const apiData = { name, description: desc, scenario_id };
 
   if (spModal.type === "edit" && spSelected) {
     try {

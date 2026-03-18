@@ -2,7 +2,7 @@ const pool = require('../db/sql.js');
 
 // 1. Function to Show all scenarios
 async function getScenariosRepository(){
-    const query= `select name, location from public.scenario`
+    const query= `select id, name, location from public.scenario`
     return pool.query(query);
 } 
 
