@@ -1072,19 +1072,19 @@ export default async function initEvent() {
       getDisciplines(),  // GET /discipline
     ]);
 
-    // Eventos: camelCase (API) → snake_case (frontend)
+    // Eventos: el backend devuelve snake_case directo de la BD
     MOCK_EVENTS = (apiEvents || []).map((ev) => ({
       id:            ev.id,
       title:         ev.title,
       description:   ev.description   || '',
-      start_date:    ev.startDate,
-      finish_date:   ev.finishDate,
-      is_active:     ev.isActive,
-      discipline_id: ev.disciplineId  || null,
-      scenario_id:   ev.scenarioId,
-      space_id:      ev.spaceId,
-      creator_id:    ev.creatorId     || '',
-      created_at:    ev.createdAt     || '',
+      start_date:    ev.start_date    || ev.startDate   || '',
+      finish_date:   ev.finish_date   || ev.finishDate  || '',
+      is_active:     ev.is_active     !== undefined ? ev.is_active  : ev.isActive,
+      discipline_id: ev.discipline_id || ev.disciplineId || null,
+      scenario_id:   ev.scenario_id   || ev.scenarioId  || '',
+      space_id:      ev.space_id      || ev.spaceId     || '',
+      creator_id:    ev.creator_id    || ev.creatorId   || '',
+      created_at:    ev.created_at    || ev.createdAt   || '',
     }));
 
     // Escenarios: necesarios para el selector del formulario y para mostrar nombres
