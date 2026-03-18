@@ -35,7 +35,7 @@ async function getById(id) {
 
 // POST
 async function create(data) {
-    const { startDate, finishDate } = data
+    const { startDate, finishDate, spaceId } = data
 
     // Checking that the date isn't in the past
     validate.date(startDate)
@@ -48,8 +48,8 @@ async function create(data) {
     // Checking the minimum time (1 hour)
     //validate.dateMinimum(startDate, finishDate)
 
-    // Checking the date isn't busy
-    const eventConflict = await eventRepository.checkDates(startDate, finishDate)
+    // Checking the date isn't busy — only for the same space
+    const eventConflict = await eventRepository.checkDates(startDate, finishDate, spaceId)
 
     if(eventConflict.length > 0) {
         const err = new Error("Event time conflict")
@@ -70,16 +70,17 @@ async function create(data) {
 
 // UPDATE
 async function update(id, data) {
-    const { startDate, finishDate } = data
+    const { startDate, finishDate, spaceId } = data
 
     // Checking that the date isn't in the past
     validate.date(startDate)
     validate.date(finishDate)
 
-    // Checking the date isn't busy
-    const eventConflict = await eventRepository.checkDates(startDate, finishDate)
+    // Checking the date isn't busy — only for the same space, excluding itself
+    const eventConflict = (await eventRepository.checkDates(startDate, finishDate, spaceId))
+        .filter(ev => ev.id !== id)
 
-    if(eventConflict.length > 1) {
+    if(eventConflict.length > 0) {
         const err = new Error("Event time conflict")
         err.status = 409 // HTTP Conflict Code
 
