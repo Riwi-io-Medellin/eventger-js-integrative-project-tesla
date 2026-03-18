@@ -141,9 +141,9 @@ export default function Navbar() {
 
     return `
     <div id="notif-backdrop" style="display:none;position:fixed;inset:0;z-index:149;"></div>
-    <nav class="flex pl-5 w-full h-16 justify-between items-center border-b border-gray-200 bg-white">
+    <nav class="flex w-full h-16 justify-end items-center border-b border-gray-200 bg-white">
 
-        <div class="flex items-center mr-6 gap-4 ml-auto">
+        <div class="flex items-center mr-6 gap-4">
 
             <!-- Bell -->
             <div style="position:relative;">
