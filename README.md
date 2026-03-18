@@ -10,7 +10,7 @@
 
 ## 🔗 Live Demo
 
-See our live demo clicking [here](url)
+See our live demo clicking [here](https://eventger-js-integrative-project-tesla.onrender.com/)
 
 ## 📌 Description
 
@@ -88,40 +88,58 @@ git clone https://github.com/Riwi-io-Medellin/eventger-js-integrative-project-te
 cd <project-folder>
 ```
 
-2. **Install Backend Dependencies**
+2. **Install Dependencies** 
 ```bash
-cd backend
-npm install
+npm build
 ```
+It will install all the required dependencies of the frontend and backend for the application running.
 
-3. **Install Frontend Dependencies**
-```bash
-cd ../frontend
-npm install
-```
-4. **Set up enviroment variables**
+3. **Set up enviroment variables**
 
 - Go to the `backend` folder.
-- Create a `.env` file (you can use `.env.example` as a template):
-
-5. **Run backend server**
+- Create a `.env` file inside the `backend` folder defining the next vars:
 ```bash
-cd ../backend
-npm run dev
+# PORT
+PORT=
+
+# Postgres DB Settings
+DB_SQL_HOST= 
+DB_SQL_USER=
+DB_SQL_PASSWORD=
+DB_SQL_NAME= # DB Name
+
+# JWT
+JWT_SECRET= # Choose a secret word for each token
+JWT_EXPIRES= # Choose an expiration time for the JWT Tokens
+
+# NODEMAILER
+EMAIL_USER= # Email for send notifications
+
+# API KEYS
+## Twilio Config
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_WHATSAPP_NUMBER=
+TWILIO_SENDGRID_KEY=
+
+## OPENAI
+API_OPENAI_KEY=
+API_OPENAI_MODEL=
 ```
-Backend usually runs at: http://localhost:3000 or your configured PORT on .env
 
-6. **Run frontend**
-
-Use live server extension to open frontend/index.html
+4. **Run server**
+```bash
+npm start
+```
+Server usually runs at: http://localhost:3000 or your configured PORT on .env
 
 
 ## 🧑‍💻 Team
 
-- Sara as Scrum Master [LinkedIn](url)
-- Jose Henao as Product Owner [LinkedIn](url)
-- John Cadavid as Developer [LinkedIn](url)
-- Jeronimo Gallego as Developer [LinkedIn](url)
+- Sara as Scrum Master [LinkedIn](http://www.linkedin.com/in/sara-calderon-anacona-681637175)
+- Jose Henao as Product Owner [LinkedIn](https://www.linkedin.com/in/jose-david-henao-camacho-b7597119b/)
+- John Cadavid as Developer [LinkedIn](https://www.linkedin.com/in/jhon-cadavid-376220360)
+- Jeronimo Gallego as Developer [LinkedIn](https://www.linkedin.com/in/jero-gallego-10a5b61b9/)
 
 ⭐️ If you like it, please give us a Star! ⭐️
 
