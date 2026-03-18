@@ -1,39 +1,27 @@
-const nodemailer = require("nodemailer")
+const { Resend } = require("resend")
 
-// Gmail Transporter
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-    },
-    connectionTimeout: 5000,  // 5s para conectar al servidor SMTP
-    greetingTimeout:  5000,   // 5s para el saludo inicial
-    socketTimeout:    10000   // 10s de inactividad máxima
-})
+const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Send user regsitration
+const FROM = process.env.EMAIL_FROM || "EventgerJS <onboarding@resend.dev>"
+
 async function send(data) {
     const { addressee, subject, description } = data
-
-    return await transporter.sendMail({
-        from: process.env.EMAIL_USER, // Sender
+    return resend.emails.send({
+        from: FROM,
         to: addressee,
         subject,
         html: description
     })
 }
 
-
-async function sendImportant(data){ 
+async function sendImportant(data) {
     const { addressee, subject, description } = data
-
-    return await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+    return resend.emails.send({
+        from: FROM,
         to: addressee,
         subject,
         html: description,
-        header: {
+        headers: {
             "X-Priority": "1",
             "X-MSMail-Priority": "High",
             "Importance": "high"
@@ -41,11 +29,9 @@ async function sendImportant(data){
     })
 }
 
-// Send Email of event creation
-
 async function sendEmail(emails, subject, message) {
-    await transporter.sendMail({
-        from:process.env.EMAIL_USER,
+    return resend.emails.send({
+        from: FROM,
         bcc: emails,
         subject,
         html: message
