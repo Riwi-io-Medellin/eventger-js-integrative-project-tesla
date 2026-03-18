@@ -195,6 +195,13 @@ export function getDisciplines() {
     return request('/discipline', 'GET', null, false);
 }
 
+// ─── Departamentos ─────────────────────────────────────────────────────────────
+
+export function getDepartments() {
+    // GET /department — ruta pública, no requiere token
+    return request('/department', 'GET', null, false);
+}
+
 // ─── Eventos ───────────────────────────────────────────────────────────────────
 
 /**
@@ -351,12 +358,6 @@ export function deleteScenario(id) {
     return request(`/scenario/${id}`, 'DELETE', null, true);
 }
 
-// ─── Departamentos ─────────────────────────────────────────────────────────────
-
-/** Obtiene todos los departamentos disponibles. */
-export function getDepartments() {
-    return request('/department', 'GET', null, true);
-}
 
 // ─── Perfil ────────────────────────────────────────────────────────────────────
 

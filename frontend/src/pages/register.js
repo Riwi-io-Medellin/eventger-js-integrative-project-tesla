@@ -1,25 +1,5 @@
 // src/pages/register.js
-import { register as apiRegister } from '../services/api.js'; // función de registro del archivo central de la API
-
-// Departamentos mapeados desde la BD
-const DEPARTMENTS = [
-  {
-    id: "dept-c108f73c-dcb5-4052-b098-da3940b3e3e2",
-    name: "Fomento Deportivo",
-  },
-  { id: "dept-fe464789-961f-47d3-beb7-3087b80823af", name: "Actividad Física" },
-  {
-    id: "dept-480a50f7-bcc6-4e63-be3a-ffaee45d5bcd",
-    name: "Cultura Deportiva",
-  },
-  {
-    id: "dept-c48c2dc1-3e13-4e5d-8bc3-7c13a42d0a0a",
-    name: "Espacios Deportivos",
-  },
-];
-
-// ─── NOTA: reemplaza los id de arriba con los UUID reales de tu tabla department
-// Ejemplo: { id: 'aa669537-0d75-41e7-bd94-055997017e5b', name: 'Fomento Deportivo' }
+import { register as apiRegister, getDepartments } from '../services/api.js';
 
 const templateForm = /* html */ `
   <div style="display:flex; min-height:100vh; font-family:'DM Sans',sans-serif;">
@@ -183,8 +163,7 @@ const templateForm = /* html */ `
                 onfocus="this.style.borderColor='#2563eb'; this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.12)'"
                 onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'"
                 aria-describedby="department-error">
-                <option value="" disabled selected style="color:#94a3b8;">Selecciona tu departamento</option>
-                ${DEPARTMENTS.map((d) => `<option value="${d.id}">${d.name}</option>`).join("")}
+                <option value="" disabled selected style="color:#94a3b8;">Cargando departamentos...</option>
               </select>
               <!-- Chevron -->
               <div style="position:absolute; right:0.875rem; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none;">
@@ -565,7 +544,17 @@ function bindEvents() {
   });
 }
 
-export function initRegister() {
+export async function initRegister() {
   document.getElementById("app").innerHTML = templateForm;
   bindEvents();
+
+  // Cargar departamentos reales desde el backend
+  const deptSelect = document.getElementById("department");
+  try {
+    const departments = await getDepartments();
+    deptSelect.innerHTML = `<option value="" disabled selected style="color:#94a3b8;">Selecciona tu departamento</option>` +
+      (departments || []).map((d) => `<option value="${d.id}">${d.name}</option>`).join("");
+  } catch {
+    deptSelect.innerHTML = `<option value="" disabled selected>Error al cargar departamentos</option>`;
+  }
 }

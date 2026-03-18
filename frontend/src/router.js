@@ -7,6 +7,7 @@ import { initSpaces } from "./pages/spaces.js";
 import { initEscenarios } from "./pages/escenarios.js";
 import { initLogin }    from "./pages/login.js";
 import { initRegister } from "./pages/register.js";
+import { initForgot }   from "./pages/forgot.js";
 import { initNotFound } from "./pages/notFound.js";
 import { getSession, clearSession } from "./utils/session.js";
 
@@ -21,6 +22,7 @@ const ROUTES = {
     "/escenarios": { handler: initEscenarios, roles: ['admin_gen','admin_spa'] },
     "/login":      { handler: initLogin,     roles: null },
     "/register":   { handler: initRegister,  roles: null },
+    "/forgot":     { handler: initForgot,    roles: null },
 };
 
 // Extrae la ruta del hash: "#/dashboard" → "/dashboard", "" o "#/" → "/"

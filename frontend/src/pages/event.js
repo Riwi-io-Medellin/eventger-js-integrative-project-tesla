@@ -74,7 +74,7 @@ if (!document.getElementById("eventos-style")) {
     .ev-filter-pill:hover { border-color:#2563eb;color:#2563eb; }
     .ev-filter-pill.active { background:#eff6ff;border-color:#2563eb;color:#2563eb; }
     .hide-mobile { display:none!important; }
-    .ev-main-content { padding:1rem; }
+    .ev-main-content { padding:1rem; overflow-y:auto; min-height:0; }
     .ev-page-title { font-size:1.25rem; }
     .ev-header { padding:0 1rem; }
     @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
