@@ -42,8 +42,18 @@ async function request(endpoint, method = 'GET', body = null, auth = false) {
         options.body = JSON.stringify(body); // convertimos el objeto JS a texto JSON
     }
 
-    // Hacemos la petición y esperamos la respuesta
-    const response = await fetch(`${BASE_URL}${endpoint}`, options);
+    // Hacemos la petición con timeout de 20s para no quedar colgados
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 20000);
+    let response;
+    try {
+        response = await fetch(`${BASE_URL}${endpoint}`, { ...options, signal: controller.signal });
+    } catch (fetchErr) {
+        if (fetchErr.name === 'AbortError') throw new Error('La solicitud tardó demasiado. Intenta de nuevo.');
+        throw fetchErr;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 
     // Si el servidor responde con un error (4xx o 5xx), lanzamos un error con el mensaje del servidor
     if (!response.ok) {
