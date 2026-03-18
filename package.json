@@ -1,0 +1,23 @@
+{
+  "name": "eventger-js-integrative-project-tesla",
+  "version": "1.0.0",
+  "description": "![bannerImage](/Banner.jpeg)",
+  "main": "index.js",
+  "scripts": {
+    "start": "cd ./backend && npm start",
+    "build": "cd ./frontend && npm install && npm run build && cd ./../backend && npm install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Riwi-io-Medellin/eventger-js-integrative-project-tesla.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Riwi-io-Medellin/eventger-js-integrative-project-tesla/issues"
+  },
+  "homepage": "https://github.com/Riwi-io-Medellin/eventger-js-integrative-project-tesla#readme"
+}

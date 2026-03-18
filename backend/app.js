@@ -1,4 +1,7 @@
 const express = require("express")
+const cors = require('cors')
+const path = require("path")
+
 const app = express()
 
 require("dotenv").config() // Dot-Env Use
@@ -7,7 +10,6 @@ const cron = require('node-cron')
 const {reminderService, reminderPhoneService} = require('./src/services/notification.service.js')
 
 const morgan = require('morgan')
-const cors = require('cors')
 const handleError = require("./src/middlewares/handleError.middleware")
 
 const PORT = process.env.PORT || 3000
@@ -81,6 +83,10 @@ cron.schedule('0 10 * * *', async () => {
         console.error(err)
     }
 })
+
+// Rendering FrontEnd
+const frontendPath = path.join(__dirname, '../frontend');
+app.use(express.static(frontendPath))
 
 // App initializing
 app.listen(PORT, () => console.log(`The app is running on port ${PORT}`))
