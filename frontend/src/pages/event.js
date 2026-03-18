@@ -690,7 +690,7 @@ function renderPage() {
             <p style="font-size:0.8125rem;font-weight:600;color:#1e293b;margin:0;line-height:1.2;">${sesName}</p>
             <p style="font-size:0.7rem;color:#64748b;margin:0;">${sesRole}</p>
           </div>
-          <button id="header-logout-btn" title="Cerrar sesión"
+          <button id="header-logout-btn" title="Cerrar sesión" onclick="handleLogout()"
             style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:0.375rem;border-radius:0.5rem;display:flex;align-items:center;transition:color 0.15s,background 0.15s;"
             onmouseover="this.style.color='#ef4444';this.style.background='#fef2f2'"
             onmouseout="this.style.color='#94a3b8';this.style.background='none'">
