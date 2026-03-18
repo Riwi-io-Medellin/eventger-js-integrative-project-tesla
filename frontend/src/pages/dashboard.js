@@ -153,6 +153,55 @@ export default async function Dashboard() {
                 window.location.hash = href.startsWith('#') ? href : '#' + href;
             });
         });
+
+        window.changeDashYear = async (year) => {
+            // Loading state en los KPIs
+            ['kpi-goal','kpi-completed','kpi-pending'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '...';
+            });
+            document.getElementById('kpi-year-label').textContent  = `Año ${year}`;
+            document.getElementById('kpi-pct-label').textContent    = '...';
+            document.getElementById('kpi-pct-badge').textContent    = '↗ ...';
+            document.getElementById('kpi-pending-badge').textContent = '...';
+
+            try {
+                const res = await getDashboardMetrics(year);
+                const m   = res?.general_metrics || {};
+                const raw = res?.general_dep_metrics || {};
+                const newPct = Math.round(m.percentage_advance || 0);
+
+                // Actualizar valores
+                document.getElementById('kpi-goal').textContent         = m.total_goal      ?? 0;
+                document.getElementById('kpi-completed').textContent    = m.completed_events ?? 0;
+                document.getElementById('kpi-pending').textContent      = m.pending_events   ?? 0;
+                document.getElementById('kpi-pct-label').textContent    = `${newPct}%`;
+                document.getElementById('kpi-pct-badge').textContent    = `↗ ${newPct}%`;
+                document.getElementById('kpi-pending-badge').textContent = `${100 - newPct}%`;
+                document.getElementById('kpi-bar-completed').style.width = `${newPct}%`;
+                document.getElementById('kpi-bar-pending').style.width   = `${100 - newPct}%`;
+
+                // Actualizar doughnut
+                const pc = Chart.getChart('progressChart');
+                if (pc) { pc.data.datasets[0].data = [newPct, 100 - newPct]; pc.update(); }
+
+                // Actualizar gráfica de departamentos
+                const deps = Object.values(raw);
+                const dc = Chart.getChart('departmentChart');
+                if (dc) {
+                    dc.data.labels                  = deps.map(d => d.name);
+                    dc.data.datasets[0].data        = deps.map(d => d.department_goals);
+                    dc.data.datasets[1].data        = deps.map(d => d.events_completed);
+                    dc.data.datasets[2].data        = deps.map(d => d.events_pendign);
+                    dc.update();
+                }
+            } catch {
+                ['kpi-goal','kpi-completed','kpi-pending'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = '—';
+                });
+            }
+        };
     }, 0);
 
     return `
@@ -165,9 +214,18 @@ export default async function Dashboard() {
             <main class="flex-1 p-8 bg-gray-50 space-y-8 overflow-y-auto">
 
                 <!-- Encabezado -->
-                <div>
-                    <h1 class="text-3xl font-bold text-textPrimary">Panel de Control</h1>
-                    <p class="text-textSecondary text-sm mt-1">Resumen general del sistema</p>
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-textPrimary">Panel de Control</h1>
+                        <p class="text-textSecondary text-sm mt-1">Resumen general del sistema</p>
+                    </div>
+                    <select id="dash-year-select"
+                        style="border:1.5px solid #e2e8f0;border-radius:0.625rem;padding:0.5rem 1rem;font-size:0.9375rem;font-weight:600;color:#1e293b;background:#fff;cursor:pointer;outline:none;"
+                        onchange="changeDashYear(this.value)">
+                        ${[currentYear+1, currentYear, currentYear-1, currentYear-2].map(y =>
+                            `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`
+                        ).join('')}
+                    </select>
                 </div>
 
                 <!-- Módulos -->
@@ -184,9 +242,9 @@ export default async function Dashboard() {
                             <div class="w-10 h-10 bg-gray-100 flex items-center justify-center rounded-lg">
                                 <i class="fa-solid fa-bullseye text-textSecondary"></i>
                             </div>
-                            <span class="text-xs bg-gray-100 text-textSecondary px-2 py-1 rounded font-medium">Año ${currentYear}</span>
+                            <span id="kpi-year-label" class="text-xs bg-gray-100 text-textSecondary px-2 py-1 rounded font-medium">Año ${currentYear}</span>
                         </div>
-                        <h2 class="text-3xl font-bold mt-4 text-textPrimary">${metrics.total_goal}</h2>
+                        <h2 id="kpi-goal" class="text-3xl font-bold mt-4 text-textPrimary">${metrics.total_goal}</h2>
                         <p class="text-textSecondary text-sm mt-1">Meta de Eventos</p>
                         <div class="mt-4 bg-gray-200 h-2 rounded"><div class="bg-neutral h-2 w-full rounded"></div></div>
                     </div>
@@ -197,11 +255,11 @@ export default async function Dashboard() {
                             <div class="w-10 h-10 bg-green-100 flex items-center justify-center rounded-lg">
                                 <i class="fa-solid fa-check text-grn"></i>
                             </div>
-                            <span class="text-grn text-sm font-semibold">↗ ${pct}%</span>
+                            <span id="kpi-pct-badge" class="text-grn text-sm font-semibold">↗ ${pct}%</span>
                         </div>
-                        <h2 class="text-3xl font-bold text-grn mt-4">${metrics.completed_events}</h2>
+                        <h2 id="kpi-completed" class="text-3xl font-bold text-grn mt-4">${metrics.completed_events}</h2>
                         <p class="text-textSecondary text-sm mt-1">Eventos Completados</p>
-                        <div class="mt-4 bg-gray-200 h-2 rounded"><div class="bg-grn h-2 rounded" style="width:${pct}%"></div></div>
+                        <div class="mt-4 bg-gray-200 h-2 rounded"><div id="kpi-bar-completed" class="bg-grn h-2 rounded" style="width:${pct}%"></div></div>
                     </div>
 
                     <!-- Pendientes -->
@@ -210,11 +268,11 @@ export default async function Dashboard() {
                             <div class="w-10 h-10 bg-red-100 flex items-center justify-center rounded-lg">
                                 <i class="fa-solid fa-clock text-danger"></i>
                             </div>
-                            <span class="text-danger text-sm font-semibold">${100 - pct}%</span>
+                            <span id="kpi-pending-badge" class="text-danger text-sm font-semibold">${100 - pct}%</span>
                         </div>
-                        <h2 class="text-3xl font-bold text-danger mt-4">${metrics.pending_events}</h2>
+                        <h2 id="kpi-pending" class="text-3xl font-bold text-danger mt-4">${metrics.pending_events}</h2>
                         <p class="text-textSecondary text-sm mt-1">Eventos Pendientes</p>
-                        <div class="mt-4 bg-gray-200 h-2 rounded"><div class="bg-danger h-2 rounded" style="width:${100 - pct}%"></div></div>
+                        <div class="mt-4 bg-gray-200 h-2 rounded"><div id="kpi-bar-pending" class="bg-danger h-2 rounded" style="width:${100 - pct}%"></div></div>
                     </div>
 
                     <!-- % Avance -->
@@ -222,7 +280,7 @@ export default async function Dashboard() {
                         <div style="position:relative;width:120px;height:120px;">
                             <canvas id="progressChart"></canvas>
                             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-                                <span style="font-size:1.375rem;font-weight:700;color:#0f172a;">${pct}%</span>
+                                <span id="kpi-pct-label" style="font-size:1.375rem;font-weight:700;color:#0f172a;">${pct}%</span>
                             </div>
                         </div>
                         <p class="text-textSecondary text-sm mt-3">% Avance del Año</p>
