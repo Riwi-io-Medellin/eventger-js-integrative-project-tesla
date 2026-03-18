@@ -2,17 +2,13 @@ const nodemailer = require("nodemailer")
 
 // Gmail Transporter — forced IPv4 (Render free tier has no IPv6)
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    family: 4,  // force IPv4, evita ENETUNREACH en Render
+    host: "smtp.sendgrid.net",
+    port: 465,
+    secure: true,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-    },
-    connectionTimeout: 10000,
-    greetingTimeout:   10000,
-    socketTimeout:     15000
+        user: "apikey",
+        pass: process.env.TWILIO_SENDGRID_KEY
+    }
 })
 
 async function send(data) {

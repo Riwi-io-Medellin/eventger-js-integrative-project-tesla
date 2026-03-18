@@ -31,7 +31,6 @@ const createScenario=  async (req,res, next) =>{
         } else{
             res.status(201).json({message: "Scenario created successfully", 
             scenario: response})};
-        console.log(response)
     } catch (error){
         next(error)
     }

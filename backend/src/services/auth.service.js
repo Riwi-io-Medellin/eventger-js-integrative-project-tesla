@@ -85,9 +85,9 @@ async function login(email, password) {
         roleId: user[0].role_id,
         roleName: roleName.name
     }
-    console.log(payload)
+
     const token = jwt.generate(payload)
-    console.log(jwt.verify(token))
+
     return {token}
 }
 

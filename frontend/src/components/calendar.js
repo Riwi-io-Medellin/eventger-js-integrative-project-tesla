@@ -397,7 +397,6 @@ export async function createCalendar({ containerId, events = [], onEventClick = 
 
   const container = document.getElementById(containerId);
   if (!container) {
-    console.error(`[Calendar] No se encontró #${containerId}`);
     return null;
   }
   container.classList.add('cal-wrapper');

@@ -36,7 +36,6 @@ async function generalMetrics2Service(year){
     // Get all goals of all completed events per department
     const events = await getEventsAllDepartments(year)
     const eventsDep = events.rows
-    console.log(eventsDep)
 
     let result ={}
 
