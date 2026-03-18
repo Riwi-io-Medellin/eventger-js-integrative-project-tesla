@@ -76,8 +76,8 @@ export default function Sidebar() {
         <aside id="sidebar" class="w-64 h-full bg-primary text-white flex flex-col items-center transition-all duration-300">
 
             <div class="h-16 w-full flex items-center justify-center mb-5 mt-5">
-                <img id="logoFull" src="/public/images/logo.png" class="mr-8 h-[8rem]">
-                <img id="logoSmall" src="/public/images/RoundedLogo.png" class="h-12 hidden">
+                <img id="logoFull" src="./public/images/logo.png" class="mr-8 h-[8rem]">
+                <img id="logoSmall" src="./public/images/RoundedLogo.png" class="h-12 hidden">
             </div>
 
             <nav class="flex flex-col p-4 gap-4 w-full">

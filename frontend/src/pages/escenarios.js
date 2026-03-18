@@ -8,7 +8,7 @@ import Navbar  from "../components/navbar.js";
 import { toast } from "../utils/toast.js";
 import {
   getScenarios, createScenario, updateScenario, deleteScenario,
-  getSpaces,
+  getSpaces
 } from "../services/api.js";
 
 // ─── Estilos ───────────────────────────────────────────────────────────────────
@@ -122,12 +122,12 @@ function renderCards(scenarios) {
           <!-- Botones editar y eliminar -->
           <div style="display:flex;gap:0.25rem;flex-shrink:0;">
             <button class="esc-action-btn" title="Editar" style="color:#2563eb;"
-              onclick="window.escOpenModal('edit','${sc.id}')"
+              onclick="window.escOpenModal('edit',${i})"
               onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             </button>
             <button class="esc-action-btn" title="Eliminar" style="color:#ef4444;"
-              onclick="window.escOpenModal('delete','${sc.id}')"
+              onclick="window.escOpenModal('delete',${i})"
               onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </button>
@@ -313,9 +313,8 @@ function renderPage() {
 // ─── Handlers globales (los llama el HTML con window.*) ──────────────────────
 
 // Abre el modal según el tipo: 'create', 'edit' o 'delete'
-window.escOpenModal = function (type, id = null) {
-  // Si se pasa un id, buscamos el escenario en nuestra lista local
-  escSelected = id ? ESC_SCENARIOS.find((sc) => sc.id === id) || null : null;
+window.escOpenModal = function (type, idx = null) {
+  escSelected = idx !== null ? getFiltered()[idx] || null : null;
   escModal = { type };
   renderPage();
 };
