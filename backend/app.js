@@ -66,6 +66,10 @@ app.use("/dashboard", dashboardRouter)
 const notificationRouter= require('./src/routes/notification.route.js')
 app.use("/notification", notificationRouter)
 
+// Department Router
+const departmentRouter = require('./src/routes/department.route.js')
+app.use("/department", departmentRouter)
+
 // Error handling middleware
 app.use(handleError)
 

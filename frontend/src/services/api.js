@@ -344,6 +344,13 @@ export function deleteScenario(id) {
     return request(`/scenario/${id}`, 'DELETE', null, true);
 }
 
+// ─── Departamentos ─────────────────────────────────────────────────────────────
+
+/** Obtiene todos los departamentos disponibles. */
+export function getDepartments() {
+    return request('/department', 'GET', null, true);
+}
+
 // ─── Perfil ────────────────────────────────────────────────────────────────────
 
 /**

@@ -1,7 +1,7 @@
 import Home      from "./pages/home.js";
 import Dashboard from "./pages/dashboard.js";
 import Eventos   from "./pages/event.js";
-import Usuarios  from "./pages/usuarios.js";
+import { initUsuarios } from "./pages/usuarios.js";
 import Perfil    from "./pages/profile.js";
 import { initSpaces } from "./pages/spaces.js";
 import { initEscenarios } from "./pages/escenarios.js";
@@ -15,7 +15,7 @@ const ROUTES = {
     "/muro":           { handler: Home,          roles: null },
     "/dashboard":  { handler: Dashboard,     roles: ['admin_gen','admin_spa','event_creator','visualizer'] },
     "/eventos":    { handler: Eventos,       roles: ['admin_gen','admin_spa','event_creator'] },
-    "/usuarios":   { handler: Usuarios,      roles: ['admin_gen'] },
+    "/usuarios":   { handler: initUsuarios,  roles: ['admin_gen'] },
     "/perfil":     { handler: Perfil,        roles: ['admin_gen','admin_spa','event_creator','visualizer'] },
     "/espacios":   { handler: initSpaces,    roles: ['admin_gen','admin_spa'] },
     "/escenarios": { handler: initEscenarios, roles: ['admin_gen','admin_spa'] },

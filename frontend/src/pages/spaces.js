@@ -166,7 +166,7 @@ function renderSpCards(spaces) {
           </div>
           <!-- Toggle switch → 🔌 PATCH /api/spaces/${sp.id}/status -->
           <button
-            onclick="toggleSpStatus('${sp.id}')"
+            onclick="toggleSpStatus(${i})"
             title="${isActive ? "Desactivar espacio" : "Activar espacio"}"
             style="width:2.625rem;height:1.5rem;border-radius:9999px;border:none;cursor:pointer;background:${isActive ? "#22c55e" : "#cbd5e1"};position:relative;transition:background 0.25s;padding:0;flex-shrink:0;margin-top:0.125rem;"
           >
@@ -181,10 +181,10 @@ function renderSpCards(spaces) {
             ${scenarioName}
           </span>
           <div style="display:flex;gap:0.125rem;flex-shrink:0;">
-            <button class="action-btn" title="Editar" style="color:#2563eb;" onclick="openSpModal('edit','${sp.id}')" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
+            <button class="action-btn" title="Editar" style="color:#2563eb;" onclick="openSpModal('edit',${i})" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             </button>
-            <button class="action-btn" title="Eliminar" style="color:#ef4444;" onclick="openSpModal('delete','${sp.id}')" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+            <button class="action-btn" title="Eliminar" style="color:#ef4444;" onclick="openSpModal('delete',${i})" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </button>
           </div>
@@ -343,7 +343,7 @@ function renderSpPage() {
         </div>
 
         <!-- Lista de espacios -->
-        ${renderSpCards(spaces)}
+        <div id="sp-cards-wrapper">${renderSpCards(spaces)}</div>
       </div>
     </div>
   </div>
@@ -359,8 +359,8 @@ function renderSpPage() {
 }
 
 // handlers de espacios
-window.openSpModal = function (type, id = null) {
-  spSelected = id ? SP_SPACES.find((s) => s.id === id) : null;
+window.openSpModal = function (type, idx = null) {
+  spSelected = idx !== null ? getFilteredSpaces()[idx] || null : null;
   spModal = { type };
   renderSpPage();
 };
@@ -423,6 +423,10 @@ window.confirmDeleteSpace = async function () {
   if (!spSelected) return;
   const idToDelete = spSelected.id;
   const nameToDelete = spSelected.name;
+  if (!idToDelete) {
+    toast("error", "Recarga la página — el servidor aún no devuelve los IDs.");
+    return;
+  }
   try {
     await deleteSpace(idToDelete); // DELETE /space/:id
     SP_SPACES = SP_SPACES.filter((s) => s.id !== idToDelete);
@@ -447,15 +451,19 @@ window.spToggleModalStatus = function () {
   label.style.color = nowActive ? "#16a34a" : "#94a3b8";
 };
 
-window.toggleSpStatus = async function (id) {
-  // Guard: si el id no es válido (undefined, vacío) no hacemos nada
-  if (!id || id === 'undefined') return;
-  const idx = SP_SPACES.findIndex((s) => s.id === id);
-  if (idx === -1) return;
-  const newStatus = SP_SPACES[idx].status === "activo" ? "inactivo" : "activo";
+window.toggleSpStatus = async function (filteredIdx) {
+  const sp = getFilteredSpaces()[filteredIdx];
+  if (!sp) return;
+  if (!sp.id) {
+    toast("error", "Recarga la página — el servidor aún no devuelve los IDs.");
+    return;
+  }
+  const newStatus = sp.status === "activo" ? "inactivo" : "activo";
+  const backendStatus = newStatus === "activo" ? "active" : "inactive";
   try {
-    await patchSpace(id, { status: newStatus === 'activo' ? 'active' : 'inactive' }); // PATCH /space/:id
-    SP_SPACES[idx] = { ...SP_SPACES[idx], status: newStatus };
+    await patchSpace(sp.id, { status: backendStatus }); // PATCH /space/:id
+    const idx = SP_SPACES.findIndex((s) => s.id === sp.id);
+    if (idx !== -1) SP_SPACES[idx] = { ...SP_SPACES[idx], status: newStatus };
     toast("success", `Espacio ${newStatus === "activo" ? "activado" : "desactivado"}.`);
     renderSpPage();
   } catch (err) {
@@ -470,6 +478,8 @@ window.setSpFilter = function (val) {
 
 window.onSpSearch = function (val) {
   spSearch = val.toLowerCase();
+  const wrapper = document.getElementById("sp-cards-wrapper");
+  if (wrapper) { wrapper.innerHTML = renderSpCards(getFilteredSpaces()); return; }
   renderSpPage();
 };
 
@@ -703,7 +713,7 @@ function renderScPage() {
         </div>
 
         <!-- Lista de escenarios -->
-        ${renderScCards(scenarios)}
+        <div id="sc-cards-wrapper">${renderScCards(scenarios)}</div>
       </div>
     </div>
   </div>
@@ -783,6 +793,8 @@ window.confirmDeleteScenario = async function () {
 
 window.onScSearch = function (val) {
   scSearch = val.toLowerCase();
+  const wrapper = document.getElementById("sc-cards-wrapper");
+  if (wrapper) { wrapper.innerHTML = renderScCards(getFilteredScenarios()); return; }
   renderScPage();
 };
 

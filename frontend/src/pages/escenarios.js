@@ -302,7 +302,7 @@ function renderPage() {
         </div>
 
         <!-- Tarjetas de escenarios -->
-        ${renderCards(scenarios)}
+        <div id="esc-cards-wrapper">${renderCards(scenarios)}</div>
 
       </main>
     </div>
@@ -383,6 +383,10 @@ window.escSave = async function () {
 window.escConfirmDelete = async function () {
   if (!escSelected) return;
   const { id, name } = escSelected;
+  if (!id) {
+    toast("error", "Recarga la página — el servidor aún no devuelve los IDs.");
+    return;
+  }
   try {
     await deleteScenario(id); // DELETE /scenario/:id
     ESC_SCENARIOS = ESC_SCENARIOS.filter((sc) => sc.id !== id);
@@ -398,6 +402,8 @@ window.escConfirmDelete = async function () {
 // Filtra las tarjetas mientras el usuario escribe en el buscador
 window.escOnSearch = function (val) {
   escSearch = val.toLowerCase();
+  const wrapper = document.getElementById("esc-cards-wrapper");
+  if (wrapper) { wrapper.innerHTML = renderCards(getFiltered()); return; }
   renderPage();
 };
 
@@ -408,18 +414,20 @@ export async function initEscenarios() {
   escModal    = null;
   escSelected = null;
 
-  // Cargamos escenarios y espacios en paralelo desde el backend
+  // Cargamos escenarios y espacios por separado para que un fallo en uno no afecte al otro
   try {
-    const [scenarios, spaces] = await Promise.all([getScenarios(), getSpaces()]);
-
-    // Mapeamos al formato interno del frontend
+    const scenarios = await getScenarios();
     ESC_SCENARIOS = (scenarios || []).map((sc) => ({
       id:       sc.id,
       name:     sc.name,
       location: sc.location || "",
     }));
+  } catch (err) {
+    toast("error", "No se pudieron cargar los escenarios.");
+  }
 
-    // Los espacios los necesitamos solo para mostrarlos dentro de cada tarjeta
+  try {
+    const spaces = await getSpaces();
     ESC_SPACES = (spaces || []).map((sp) => ({
       id:          sp.id,
       name:        sp.name,
@@ -427,7 +435,7 @@ export async function initEscenarios() {
       scenario_id: sp.scenarioId || sp.scenario_id || "",
     }));
   } catch (err) {
-    toast("error", "No se pudieron cargar los datos del servidor.");
+    ESC_SPACES = [];
   }
 
   renderPage();
