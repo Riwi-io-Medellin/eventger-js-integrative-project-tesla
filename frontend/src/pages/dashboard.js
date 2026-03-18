@@ -1,7 +1,7 @@
 /* global Chart */
 import Sidebar from "../components/sidebar.js";
 import Navbar  from "../components/navbar.js";
-import { getEvents, getDisciplines, getSpaces, getScenarios } from "../services/api.js";
+import { getEvents, getDisciplines, getSpaces, getScenarios, getDashboardMetrics } from "../services/api.js";
 
 const MODULES = [
     {
@@ -66,11 +66,17 @@ export default async function Dashboard() {
         // Si falla, mostramos ceros — no bloqueamos la vista
     }
 
-    // ── Calcular KPIs ───────────────────────────────────────────────────────
-    const total    = events.length;
-    const activos  = events.filter(e => e.is_active === true).length;
-    const inactivos= total - activos;
-    const pct      = total > 0 ? Math.round((activos / total) * 100) : 0;
+    // ── Métricas del dashboard (endpoint /dashboard/:year) ──────────────────
+    const currentYear = new Date().getFullYear();
+    let metrics = { total_goal: 0, completed_events: 0, pending_events: 0, percentage_advance: 0 };
+    try {
+        metrics = await getDashboardMetrics(currentYear) || metrics;
+    } catch { /* si falla, mostramos ceros */ }
+
+    const pct = Math.round(metrics.percentage_advance || 0);
+
+    // Calcular total de eventos para gráficas
+    const total = events.length;
 
     // ── Eventos por disciplina ──────────────────────────────────────────────
     const discMap = {};
@@ -97,7 +103,7 @@ export default async function Dashboard() {
         .slice(0, 2);
 
     // ── Charts data (disponible en closure para renderCharts) ───────────────
-    const chartsData = { pct, inactivos, discLabels, discData, monthCount, topDisc, total };
+    const chartsData = { pct, discLabels, discData, monthCount, topDisc, total };
 
     // ── Módulos ─────────────────────────────────────────────────────────────
     const moduleCards = MODULES.map(m => `
@@ -167,20 +173,20 @@ export default async function Dashboard() {
                 <!-- KPIs -->
                 <div id="stats" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
-                    <!-- Total eventos -->
+                    <!-- Meta del año -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-borderSubtle">
                         <div class="flex justify-between items-start">
                             <div class="w-10 h-10 bg-gray-100 flex items-center justify-center rounded-lg">
-                                <i class="fa-solid fa-calendar text-textSecondary"></i>
+                                <i class="fa-solid fa-bullseye text-textSecondary"></i>
                             </div>
-                            <span class="text-xs bg-gray-100 text-textSecondary px-2 py-1 rounded font-medium">${spaces.length} espacios · ${scenarios.length} escenarios</span>
+                            <span class="text-xs bg-gray-100 text-textSecondary px-2 py-1 rounded font-medium">Año ${currentYear}</span>
                         </div>
-                        <h2 class="text-3xl font-bold mt-4 text-textPrimary">${total}</h2>
-                        <p class="text-textSecondary text-sm mt-1">Total Eventos</p>
+                        <h2 class="text-3xl font-bold mt-4 text-textPrimary">${metrics.total_goal}</h2>
+                        <p class="text-textSecondary text-sm mt-1">Meta de Eventos</p>
                         <div class="mt-4 bg-gray-200 h-2 rounded"><div class="bg-neutral h-2 w-full rounded"></div></div>
                     </div>
 
-                    <!-- Activos -->
+                    <!-- Completados -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-borderSubtle">
                         <div class="flex justify-between items-start">
                             <div class="w-10 h-10 bg-green-100 flex items-center justify-center rounded-lg">
@@ -188,28 +194,28 @@ export default async function Dashboard() {
                             </div>
                             <span class="text-grn text-sm font-semibold">↗ ${pct}%</span>
                         </div>
-                        <h2 class="text-3xl font-bold text-grn mt-4">${activos}</h2>
-                        <p class="text-textSecondary text-sm mt-1">Eventos Activos</p>
+                        <h2 class="text-3xl font-bold text-grn mt-4">${metrics.completed_events}</h2>
+                        <p class="text-textSecondary text-sm mt-1">Eventos Completados</p>
                         <div class="mt-4 bg-gray-200 h-2 rounded"><div class="bg-grn h-2 rounded" style="width:${pct}%"></div></div>
                     </div>
 
-                    <!-- Inactivos -->
+                    <!-- Pendientes -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-borderSubtle">
                         <div class="flex justify-between items-start">
                             <div class="w-10 h-10 bg-red-100 flex items-center justify-center rounded-lg">
                                 <i class="fa-solid fa-clock text-danger"></i>
                             </div>
-                            <span class="text-danger text-sm font-semibold">${total > 0 ? 100 - pct : 0}%</span>
+                            <span class="text-danger text-sm font-semibold">${100 - pct}%</span>
                         </div>
-                        <h2 class="text-3xl font-bold text-danger mt-4">${inactivos}</h2>
-                        <p class="text-textSecondary text-sm mt-1">Eventos Inactivos</p>
-                        <div class="mt-4 bg-gray-200 h-2 rounded"><div class="bg-danger h-2 rounded" style="width:${total > 0 ? 100 - pct : 0}%"></div></div>
+                        <h2 class="text-3xl font-bold text-danger mt-4">${metrics.pending_events}</h2>
+                        <p class="text-textSecondary text-sm mt-1">Eventos Pendientes</p>
+                        <div class="mt-4 bg-gray-200 h-2 rounded"><div class="bg-danger h-2 rounded" style="width:${100 - pct}%"></div></div>
                     </div>
 
-                    <!-- Cumplimiento -->
+                    <!-- % Avance -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-borderSubtle flex flex-col items-center justify-center">
                         <div class="w-[120px] h-[120px]"><canvas id="progressChart"></canvas></div>
-                        <p class="text-textSecondary text-sm mt-3">% Eventos Activos</p>
+                        <p class="text-textSecondary text-sm mt-3">% Avance del Año</p>
                     </div>
 
                 </div>

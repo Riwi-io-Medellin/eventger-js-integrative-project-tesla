@@ -381,6 +381,16 @@ export function getEventsByUser(userId) {
     return request(`/profile/${userId}`, 'GET', null, false);
 }
 
+// ─── Dashboard ─────────────────────────────────────────────────────────────
+
+/**
+ * Obtiene las métricas generales del dashboard para un año dado.
+ * @param {number|string} year
+ */
+export function getDashboardMetrics(year) {
+    return request(`/dashboard/${year}`, 'GET', null, true);
+}
+
 // ─── Notificaciones ────────────────────────────────────────────────────────────
 
 /**
