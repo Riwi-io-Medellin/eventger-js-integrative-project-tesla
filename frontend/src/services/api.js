@@ -391,6 +391,14 @@ export function getDashboardMetrics(year) {
     return request(`/dashboard/${year}`, 'GET', null, true);
 }
 
+/**
+ * Obtiene métricas filtradas por departamento y disciplina para un año.
+ * @param {number|string} year
+ */
+export function getDashboardFilter(year) {
+    return request(`/dashboard/${year}/filter`, 'GET', null, true);
+}
+
 // ─── Notificaciones ────────────────────────────────────────────────────────────
 
 /**

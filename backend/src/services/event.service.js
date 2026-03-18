@@ -73,8 +73,8 @@ async function update(id, data) {
     const { startDate, finishDate, spaceId } = data
 
     // Checking that the date isn't in the past
-    validate.date(startDate)
-    validate.date(finishDate)
+    //validate.date(startDate)
+    //validate.date(finishDate)
 
     // Checking the date isn't busy — only for the same space, excluding itself
     const eventConflict = (await eventRepository.checkDates(startDate, finishDate, spaceId))

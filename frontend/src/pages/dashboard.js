@@ -1,7 +1,7 @@
 /* global Chart */
 import Sidebar from "../components/sidebar.js";
 import Navbar  from "../components/navbar.js";
-import { getEvents, getDisciplines, getSpaces, getScenarios, getDashboardMetrics } from "../services/api.js";
+import { getEvents, getDisciplines, getSpaces, getScenarios, getDashboardMetrics, getDashboardFilter } from "../services/api.js";
 
 const MODULES = [
     {
@@ -80,35 +80,20 @@ export default async function Dashboard() {
 
     const pct = Math.round(metrics.percentage_advance || 0);
 
-    // Calcular total de eventos para gráficas
-    const total = events.length;
+    // ── Datos filtrados por departamento/disciplina ─────────────────────────
+    // { "DepName": [{ discipline_name, goals_per_discipline, evenst_completed, pending_events, percentage }] }
+    let filterData = {};
+    try {
+        filterData = await getDashboardFilter(currentYear) || {};
+    } catch { /* no bloquea */ }
 
-    // ── Eventos por disciplina ──────────────────────────────────────────────
-    const discMap = {};
-    disciplines.forEach(d => { discMap[d.id] = d.name; });
-    const discCount = {};
-    events.forEach(e => {
-        const name = discMap[e.discipline_id || e.disciplineId] || 'Sin disciplina';
-        discCount[name] = (discCount[name] || 0) + 1;
-    });
-    const discLabels = Object.keys(discCount);
-    const discData   = discLabels.map(l => discCount[l]);
+    const depNames = Object.keys(filterData);
+    const firstDep = depNames[0] || '';
+    const firstDiscs = firstDep ? filterData[firstDep] : [];
 
-    // ── Eventos por mes (start_date) ────────────────────────────────────────
-    const monthCount = new Array(12).fill(0);
-    events.forEach(e => {
-        const d = new Date(e.start_date || e.startDate || '');
-        if (!isNaN(d)) monthCount[d.getMonth()]++;
-    });
-
-    // ── Top 2 disciplinas para cards de detalle ─────────────────────────────
-    const topDisc = discLabels
-        .map(name => ({ name, count: discCount[name] }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 2);
 
     // ── Charts data (disponible en closure para renderCharts) ───────────────
-    const chartsData = { pct, discLabels, discData, monthCount, topDisc, total, depMetrics };
+    const chartsData = { pct, depMetrics };
 
     // ── Módulos ─────────────────────────────────────────────────────────────
     const moduleCards = MODULES.map(m => `
@@ -123,26 +108,6 @@ export default async function Dashboard() {
             <p style="font-size:0.8125rem;color:#64748b;margin:0;line-height:1.5;">${m.desc}</p>
         </div>
     `).join('');
-
-    // ── Top 2 disciplinas para sección de detalle ────────────────────────────
-    function detailCard(disc, idx) {
-        const pctDisc = total > 0 ? Math.round((disc.count / total) * 100) : 0;
-        const color   = idx === 0 ? '#3DA442' : '#2965EB';
-        return `
-        <div class="bg-gray-50 rounded-xl p-6">
-            <h3 class="font-semibold text-textPrimary mb-4">${disc.name}</h3>
-            <div class="flex items-center gap-6">
-                <div class="w-[140px] h-[140px] flex-shrink-0">
-                    <canvas id="discChart${idx}"></canvas>
-                </div>
-                <div class="space-y-2">
-                    <div><p class="text-xs text-textSecondary">Total eventos</p><p class="font-semibold text-textPrimary">${total}</p></div>
-                    <div><p class="text-xs text-textSecondary">En esta disciplina</p><p class="font-semibold" style="color:${color};">${disc.count}</p></div>
-                    <div><p class="text-xs text-textSecondary">% del total</p><p class="font-semibold text-textPrimary">${pctDisc}%</p></div>
-                </div>
-            </div>
-        </div>`;
-    }
 
     setTimeout(() => {
         renderCharts(chartsData);
@@ -201,6 +166,19 @@ export default async function Dashboard() {
                     if (el) el.textContent = '—';
                 });
             }
+        };
+
+        window.onDepChange = (depName) => {
+            const discs = filterData[depName] || [];
+            const discSel = document.getElementById('filter-disc');
+            discSel.innerHTML = discs.map(d => `<option value="${d.discipline_name}">${d.discipline_name}</option>`).join('');
+            document.getElementById('filter-result').innerHTML = renderFilterCards(depName, discs[0] || null, filterData);
+        };
+
+        window.onDiscChange = (depName, discName) => {
+            const discs = filterData[depName] || [];
+            const discObj = discs.find(d => d.discipline_name === discName) || null;
+            document.getElementById('filter-result').innerHTML = renderFilterCards(depName, discObj, filterData);
         };
     }, 0);
 
@@ -297,17 +275,34 @@ export default async function Dashboard() {
                     </div>
                 </div>
 
-                <!-- Detalle por disciplina (top 2) -->
-                ${topDisc.length > 0 ? `
+                <!-- Análisis por Departamento / Disciplina -->
                 <div class="bg-white rounded-xl p-6 shadow-sm border border-borderSubtle">
-                    <div class="mb-6">
-                        <h2 class="font-semibold text-textPrimary">Top Disciplinas</h2>
-                        <p class="text-sm text-textSecondary">Las disciplinas con más eventos registrados</p>
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                        <div>
+                            <h2 class="font-semibold text-textPrimary">Análisis Detallado</h2>
+                            <p class="text-sm text-textSecondary">Explora el progreso por departamento y disciplina</p>
+                        </div>
+                        <div class="flex gap-3 flex-wrap">
+                            <select id="filter-dep"
+                                style="border:1.5px solid #e2e8f0;border-radius:0.625rem;padding:0.5rem 1rem;font-size:0.875rem;color:#1e293b;background:#fff;cursor:pointer;outline:none;min-width:160px;"
+                                onchange="onDepChange(this.value)">
+                                ${depNames.length
+                                    ? depNames.map(d => `<option value="${d}">${d}</option>`).join('')
+                                    : '<option value="">Sin datos</option>'}
+                            </select>
+                            <select id="filter-disc"
+                                style="border:1.5px solid #e2e8f0;border-radius:0.625rem;padding:0.5rem 1rem;font-size:0.875rem;color:#1e293b;background:#fff;cursor:pointer;outline:none;min-width:160px;"
+                                onchange="onDiscChange(document.getElementById('filter-dep').value, this.value)">
+                                ${firstDiscs.map(d => `<option value="${d.discipline_name}">${d.discipline_name}</option>`).join('')}
+                            </select>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        ${topDisc.map((d, i) => detailCard(d, i)).join('')}
+
+                    <!-- Tarjetas de resultado -->
+                    <div id="filter-result" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        ${renderFilterCards(firstDep, firstDiscs[0] || null, filterData)}
                     </div>
-                </div>` : ''}
+                </div>
 
             </main>
         </div>
@@ -315,7 +310,7 @@ export default async function Dashboard() {
     `;
 }
 
-function renderCharts({ pct, topDisc, total, depMetrics }) {
+function renderCharts({ pct, depMetrics }) {
 
     // Cumplimiento doughnut
     new Chart(document.getElementById('progressChart'), {
@@ -352,18 +347,80 @@ function renderCharts({ pct, topDisc, total, depMetrics }) {
             scales: { x: { ticks: { font: { size: 11 } } } }
         }
     });
+}
 
+function renderFilterCards(depName, discObj, filterData) {
+    if (!depName || !filterData[depName]) {
+        return `<div style="grid-column:span 2;text-align:center;padding:2rem;color:#94a3b8;">Sin datos para mostrar</div>`;
+    }
 
-    // Top 2 disciplinas (doughnuts)
-    topDisc.forEach((disc, i) => {
-        const canvas = document.getElementById(`discChart${i}`);
-        if (!canvas) return;
-        const pctDisc = total > 0 ? Math.round((disc.count / total) * 100) : 0;
-        const color   = i === 0 ? '#3DA442' : '#2965EB';
-        new Chart(canvas, {
-            type: 'doughnut',
-            data: { datasets: [{ data: [pctDisc, 100 - pctDisc], backgroundColor: [color, '#e5e7eb'] }] },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
-        });
-    });
+    const discs = filterData[depName];
+    const totalGoals     = discs.reduce((s, d) => s + (d.goals_per_discipline || 0), 0);
+    const totalCompleted = discs.reduce((s, d) => s + (d.evenst_completed     || 0), 0);
+    const totalPending   = Math.max(0, discs.reduce((s, d) => s + (d.pending_events || 0), 0));
+    const depPct         = Math.min(100, totalGoals > 0 ? Math.round((totalCompleted / totalGoals) * 100) : 0);
+
+    const depCard = `
+    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;">
+        <h3 style="font-weight:700;color:#0f172a;margin:0 0 0.25rem;">${depName}</h3>
+        <p style="font-size:0.8125rem;color:#64748b;margin:0 0 1.25rem;">Resumen departamental</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
+            <div style="text-align:center;background:white;border-radius:0.75rem;padding:1rem;border:1px solid #f1f5f9;">
+                <p style="font-size:1.5rem;font-weight:700;color:#0f172a;margin:0;">${totalGoals}</p>
+                <p style="font-size:0.75rem;color:#64748b;margin:0.25rem 0 0;">Meta total</p>
+            </div>
+            <div style="text-align:center;background:white;border-radius:0.75rem;padding:1rem;border:1px solid #f1f5f9;">
+                <p style="font-size:1.5rem;font-weight:700;color:#16a34a;margin:0;">${totalCompleted}</p>
+                <p style="font-size:0.75rem;color:#64748b;margin:0.25rem 0 0;">Completados</p>
+            </div>
+            <div style="text-align:center;background:white;border-radius:0.75rem;padding:1rem;border:1px solid #f1f5f9;">
+                <p style="font-size:1.5rem;font-weight:700;color:#dc2626;margin:0;">${totalPending}</p>
+                <p style="font-size:0.75rem;color:#64748b;margin:0.25rem 0 0;">Pendientes</p>
+            </div>
+        </div>
+        <div style="margin-top:1.25rem;">
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#64748b;margin-bottom:0.375rem;">
+                <span>Avance departamental</span><span>${depPct}%</span>
+            </div>
+            <div style="background:#e2e8f0;border-radius:9999px;height:8px;">
+                <div style="background:#2965EB;border-radius:9999px;height:8px;width:${depPct}%;"></div>
+            </div>
+        </div>
+    </div>`;
+
+    if (!discObj) {
+        return depCard + `<div style="display:flex;align-items:center;justify-content:center;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;color:#94a3b8;">Sin disciplina seleccionada</div>`;
+    }
+
+    const discPct     = Math.min(100, Math.round(discObj.percentage || 0));
+    const discPending = Math.max(0, discObj.pending_events ?? 0);
+    const discCard = `
+    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:1rem;padding:1.5rem;">
+        <h3 style="font-weight:700;color:#0f172a;margin:0 0 0.25rem;">${discObj.discipline_name}</h3>
+        <p style="font-size:0.8125rem;color:#64748b;margin:0 0 1.25rem;">Detalle de disciplina</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
+            <div style="text-align:center;background:white;border-radius:0.75rem;padding:1rem;border:1px solid #f1f5f9;">
+                <p style="font-size:1.5rem;font-weight:700;color:#0f172a;margin:0;">${discObj.goals_per_discipline ?? 0}</p>
+                <p style="font-size:0.75rem;color:#64748b;margin:0.25rem 0 0;">Meta</p>
+            </div>
+            <div style="text-align:center;background:white;border-radius:0.75rem;padding:1rem;border:1px solid #f1f5f9;">
+                <p style="font-size:1.5rem;font-weight:700;color:#16a34a;margin:0;">${discObj.evenst_completed ?? 0}</p>
+                <p style="font-size:0.75rem;color:#64748b;margin:0.25rem 0 0;">Completados</p>
+            </div>
+            <div style="text-align:center;background:white;border-radius:0.75rem;padding:1rem;border:1px solid #f1f5f9;">
+                <p style="font-size:1.5rem;font-weight:700;color:#dc2626;margin:0;">${discPending}</p>
+                <p style="font-size:0.75rem;color:#64748b;margin:0.25rem 0 0;">Pendientes</p>
+            </div>
+        </div>
+        <div style="margin-top:1.25rem;">
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#64748b;margin-bottom:0.375rem;">
+                <span>% Avance</span><span>${discPct}%</span>
+            </div>
+            <div style="background:#e2e8f0;border-radius:9999px;height:8px;">
+                <div style="background:#3DA442;border-radius:9999px;height:8px;width:${discPct}%;"></div>
+            </div>
+        </div>
+    </div>`;
+
+    return depCard + discCard;
 }
