@@ -2,10 +2,11 @@ const nodemailer = require("nodemailer")
 
 // Gmail Transporter
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.sendgrid.net",
+    port: 465,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
+        user: "apikey",
+        pass: process.env.TWILIO_SENDGRID_KEY
     }
 })
 
