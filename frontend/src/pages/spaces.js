@@ -2,6 +2,11 @@
 import Sidebar from "../components/sidebar.js";
 import Navbar  from "../components/navbar.js";
 import { toast } from "../utils/toast.js";
+// Funciones de la API para espacios y escenarios
+import {
+  getSpaces, createSpace, updateSpace, patchSpace, deleteSpace,
+  getScenarios, createScenario, updateScenario, deleteScenario,
+} from "../services/api.js";
 
 if (!document.getElementById("eventos-style")) {
   const s = document.createElement("style");
@@ -64,29 +69,9 @@ if (!document.getElementById("eventos-style")) {
 }
 
 
-// 🔌 await api.getScenarios()
-let SP_SCENARIOS = [
-  { id: "sc-1", name: "Unidad Deportiva Atanasio Girardot", location: "Medellín, Laureles" },
-  { id: "sc-2", name: "Complejo Acuático Julio César Noriega", location: "Medellín, Robledo" },
-  { id: "sc-3", name: "Polideportivo Sur", location: "Medellín, El Poblado" },
-  { id: "sc-4", name: "Unidad Deportiva María Paz", location: "Medellín, Popular" },
-];
-
-// 🔌 await api.getSpaces()
-let SP_SPACES = [
-  { id: "sp-1",  name: "Cancha Sintética Marte 2",      description: "Fútbol 11 sintético",        status: "activo",           scenario_id: "sc-1" },
-  { id: "sp-2",  name: "Estadio Atanasio Girardot",     description: "Fútbol profesional",         status: "activo",           scenario_id: "sc-1" },
-  { id: "sp-3",  name: "Coliseo Iván de Bedout",        description: "Baloncesto y eventos",       status: "inactivo",         scenario_id: "sc-1" },
-  { id: "sp-4",  name: "Pista Atlética Principal",      description: "Atletismo y ciclismo",       status: "activo",           scenario_id: "sc-1" },
-  { id: "sp-5",  name: "Piscina Olímpica 50m",          description: "Natación de competencia",    status: "activo",           scenario_id: "sc-2" },
-  { id: "sp-6",  name: "Piscina de Saltos",             description: "Saltos ornamentales",        status: "inactivo",         scenario_id: "sc-2" },
-  { id: "sp-7",  name: "Piscina de Calentamiento",      description: "Entrenamiento",              status: "activo",           scenario_id: "sc-2" },
-  { id: "sp-8",  name: "Cancha de Tenis 1",             description: "Arcilla",                    status: "activo",           scenario_id: "sc-3" },
-  { id: "sp-9",  name: "Cancha de Voleibol",            description: "Voleibol sala",              status: "activo",           scenario_id: "sc-3" },
-  { id: "sp-10", name: "Gimnasio Funcional",            description: "Pesas y cardio",             status: "inactivo",         scenario_id: "sc-3" },
-  { id: "sp-11", name: "Cancha Múltiple Norte",         description: "Microfútbol / Básquet",      status: "activo",           scenario_id: "sc-4" },
-  { id: "sp-12", name: "Cancha Múltiple Sur",           description: "Microfútbol / Básquet",      status: "activo",           scenario_id: "sc-4" },
-];
+// Se cargan desde el backend en initSpaces() e initScenarios()
+let SP_SCENARIOS = [];
+let SP_SPACES    = [];
 
 function nameOf(list, id) {
   return list.find((x) => x.id === id)?.name || "—";
@@ -216,6 +201,8 @@ function buildSpModal() {
   const sp = spSelected;
 
   if (type === "delete") {
+    // Guard: si el espacio no se encontró en SP_SPACES (ID no coincide), cerramos el modal
+    if (!sp) { spModal = null; spSelected = null; return ""; }
     return `
     <div class="modal-backdrop" onclick="if(event.target===this)closeSpModal()">
       <div class="modal-box" style="max-width:26rem;">
@@ -384,7 +371,7 @@ window.closeSpModal = function () {
   renderSpPage();
 };
 
-window.saveSpModal = function () {
+window.saveSpModal = async function () {
   const name = document.getElementById("sp-f-name")?.value.trim();
   const desc = document.getElementById("sp-f-desc")?.value.trim();
   const statusBtn = document.getElementById("sp-f-status-btn");
@@ -403,13 +390,28 @@ window.saveSpModal = function () {
 
   if (!valid) return;
 
+  const apiData = { name, description: desc, scenario_id };
+
   if (spModal.type === "edit" && spSelected) {
-    const idx = SP_SPACES.findIndex((s) => s.id === spSelected.id);
-    SP_SPACES[idx] = { ...SP_SPACES[idx], name, description: desc, status, scenario_id };
-    toast("success", "Espacio actualizado correctamente.");
+    try {
+      await updateSpace(spSelected.id, apiData); // PUT /space/:id
+      const idx = SP_SPACES.findIndex((s) => s.id === spSelected.id);
+      SP_SPACES[idx] = { ...SP_SPACES[idx], name, description: desc, status, scenario_id };
+      toast("success", "Espacio actualizado correctamente.");
+    } catch (err) {
+      toast("error", err.message || "Error al actualizar el espacio.");
+      return;
+    }
   } else {
-    SP_SPACES.push({ id: genId("sp"), name, description: desc, status, scenario_id });
-    toast("success", "Espacio creado correctamente.");
+    try {
+      const created = await createSpace(apiData); // POST /space
+      // Usamos el ID real que devuelve el servidor
+      SP_SPACES.push({ id: created?.id || genId("sp"), name, description: desc, status, scenario_id });
+      toast("success", "Espacio creado correctamente.");
+    } catch (err) {
+      toast("error", err.message || "Error al crear el espacio.");
+      return;
+    }
   }
 
   spModal = null;
@@ -417,13 +419,20 @@ window.saveSpModal = function () {
   renderSpPage();
 };
 
-window.confirmDeleteSpace = function () {
+window.confirmDeleteSpace = async function () {
   if (!spSelected) return;
-  SP_SPACES = SP_SPACES.filter((s) => s.id !== spSelected.id);
-  toast("success", `"${spSelected.name}" eliminado.`);
-  spModal = null;
-  spSelected = null;
-  renderSpPage();
+  const idToDelete = spSelected.id;
+  const nameToDelete = spSelected.name;
+  try {
+    await deleteSpace(idToDelete); // DELETE /space/:id
+    SP_SPACES = SP_SPACES.filter((s) => s.id !== idToDelete);
+    toast("success", `"${nameToDelete}" eliminado.`);
+    spModal = null;
+    spSelected = null;
+    renderSpPage();
+  } catch (err) {
+    toast("error", err.message || "Error al eliminar el espacio.");
+  }
 };
 
 window.spToggleModalStatus = function () {
@@ -438,14 +447,20 @@ window.spToggleModalStatus = function () {
   label.style.color = nowActive ? "#16a34a" : "#94a3b8";
 };
 
-window.toggleSpStatus = function (id) {
+window.toggleSpStatus = async function (id) {
+  // Guard: si el id no es válido (undefined, vacío) no hacemos nada
+  if (!id || id === 'undefined') return;
   const idx = SP_SPACES.findIndex((s) => s.id === id);
   if (idx === -1) return;
   const newStatus = SP_SPACES[idx].status === "activo" ? "inactivo" : "activo";
-  SP_SPACES[idx] = { ...SP_SPACES[idx], status: newStatus };
-  // 🔌 await api.patch(`/spaces/${id}/status`, { status: newStatus })
-  toast("success", `Espacio ${newStatus === "activo" ? "activado" : "desactivado"}.`);
-  renderSpPage();
+  try {
+    await patchSpace(id, { status: newStatus === 'activo' ? 'active' : 'inactive' }); // PATCH /space/:id
+    SP_SPACES[idx] = { ...SP_SPACES[idx], status: newStatus };
+    toast("success", `Espacio ${newStatus === "activo" ? "activado" : "desactivado"}.`);
+    renderSpPage();
+  } catch (err) {
+    toast("error", err.message || "Error al cambiar el estado.");
+  }
 };
 
 window.setSpFilter = function (val) {
@@ -458,11 +473,20 @@ window.onSpSearch = function (val) {
   renderSpPage();
 };
 
-export function initSpaces() {
-  spSearch = "";
-  spModal = null;
+export async function initSpaces() {
+  spSearch  = "";
+  spModal   = null;
   spSelected = null;
-  spFilter = "";
+  spFilter  = "";
+  // Cargamos escenarios y espacios desde el backend antes de renderizar
+  try {
+    const [scenarios, spaces] = await Promise.all([getScenarios(), getSpaces()]);
+    // Convertimos camelCase del backend a snake_case interno
+    SP_SCENARIOS = (scenarios || []).map((sc) => ({ id: sc.id, name: sc.name, location: sc.location || '' }));
+    SP_SPACES    = (spaces    || []).map((sp) => ({ id: sp.id, name: sp.name, description: sp.description || '', status: sp.status === 'active' ? 'activo' : sp.status === 'inactive' ? 'inactivo' : 'activo', scenario_id: sp.scenarioId || sp.scenario_id || '' }));
+  } catch {
+    toast("error", "No se pudieron cargar los espacios del servidor.");
+  }
   renderSpPage();
 }
 
@@ -509,12 +533,16 @@ const SC_COLORS = [
 function renderScCards(scenarios) {
   if (!scenarios.length) return emptyScState();
   return `<div class="ev-cards">${scenarios.map((sc, i) => {
-    const count = spaceCountFor(sc.id);
-    const { top } = SC_COLORS[i % SC_COLORS.length];
+    // Espacios que pertenecen a este escenario (filtramos por scenario_id)
+    const spacesOfSc = SP_SPACES.filter((sp) => sp.scenario_id === sc.id);
+    const count      = spacesOfSc.length;
+    const { top }    = SC_COLORS[i % SC_COLORS.length];
     return `
     <div class="ev-card">
       <div style="height:0.3rem;background:${top};"></div>
       <div style="padding:1.125rem 1.25rem;">
+
+        <!-- Fila superior: ícono + nombre del escenario | botones editar/eliminar -->
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:0.875rem;">
           <div style="display:flex;align-items:center;gap:0.625rem;min-width:0;">
             <div style="width:2.25rem;height:2.25rem;border-radius:0.625rem;background:${top}1a;border:1px solid ${top}33;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -537,12 +565,30 @@ function renderScCards(scenarios) {
             </button>
           </div>
         </div>
+
+        <!-- Sección de espacios del escenario -->
         <div style="padding-top:0.75rem;border-top:1px solid #f1f5f9;">
-          <span style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.775rem;color:#64748b;font-weight:500;">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="13" height="13"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            <strong style="color:${top};">${count}</strong> ${count === 1 ? "espacio" : "espacios"} registrados
-          </span>
+          <p style="font-size:0.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 0.5rem;display:flex;align-items:center;gap:0.35rem;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="12" height="12"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <strong style="color:${top};">${count}</strong>&nbsp;${count === 1 ? "espacio" : "espacios"}
+          </p>
+          ${count === 0
+            // Sin espacios → mensaje vacío
+            ? `<p style="font-size:0.8rem;color:#cbd5e1;margin:0;font-style:italic;">Sin espacios registrados aún.</p>`
+            // Con espacios → lista con nombre y estado de cada uno
+            : `<div style="display:flex;flex-direction:column;gap:0.3rem;">
+                ${spacesOfSc.map((sp) => {
+                  const isActive = sp.status === "activo";
+                  return `
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:0.375rem 0.625rem;background:#f8fafc;border-radius:0.5rem;border:1px solid #f1f5f9;">
+                    <span style="font-size:0.8125rem;font-weight:600;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${sp.name}</span>
+                    <span style="flex-shrink:0;margin-left:0.5rem;font-size:0.7rem;font-weight:600;padding:0.15rem 0.5rem;border-radius:9999px;background:${isActive ? "#f0fdf4" : "#f1f5f9"};color:${isActive ? "#16a34a" : "#94a3b8"};">${isActive ? "Activo" : "Inactivo"}</span>
+                  </div>`;
+                }).join("")}
+              </div>`
+          }
         </div>
+
       </div>
     </div>`;
   }).join("")}</div>`;
@@ -677,7 +723,7 @@ window.closeScModal = function () {
   renderScPage();
 };
 
-window.saveScModal = function () {
+window.saveScModal = async function () {
   const name = document.getElementById("sc-f-name")?.value.trim();
   const location = document.getElementById("sc-f-location")?.value.trim();
 
@@ -694,12 +740,24 @@ window.saveScModal = function () {
   if (!valid) return;
 
   if (scModal.type === "edit" && scSelected) {
-    const idx = SP_SCENARIOS.findIndex((s) => s.id === scSelected.id);
-    SP_SCENARIOS[idx] = { ...SP_SCENARIOS[idx], name, location };
-    toast("success", "Escenario actualizado correctamente.");
+    try {
+      await updateScenario(scSelected.id, { name, location }); // PUT /scenario/:id
+      const idx = SP_SCENARIOS.findIndex((s) => s.id === scSelected.id);
+      SP_SCENARIOS[idx] = { ...SP_SCENARIOS[idx], name, location };
+      toast("success", "Escenario actualizado correctamente.");
+    } catch (err) {
+      toast("error", err.message || "Error al actualizar el escenario.");
+      return;
+    }
   } else {
-    SP_SCENARIOS.push({ id: genId("sc"), name, location });
-    toast("success", "Escenario creado correctamente.");
+    try {
+      const created = await createScenario({ name, location }); // POST /scenario
+      SP_SCENARIOS.push({ id: created?.id || genId("sc"), name, location });
+      toast("success", "Escenario creado correctamente.");
+    } catch (err) {
+      toast("error", err.message || "Error al crear el escenario.");
+      return;
+    }
   }
 
   scModal = null;
@@ -707,13 +765,20 @@ window.saveScModal = function () {
   renderScPage();
 };
 
-window.confirmDeleteScenario = function () {
+window.confirmDeleteScenario = async function () {
   if (!scSelected) return;
-  SP_SCENARIOS = SP_SCENARIOS.filter((s) => s.id !== scSelected.id);
-  toast("success", `"${scSelected.name}" eliminado.`);
-  scModal = null;
-  scSelected = null;
-  renderScPage();
+  const idToDelete   = scSelected.id;
+  const nameToDelete = scSelected.name;
+  try {
+    await deleteScenario(idToDelete); // DELETE /scenario/:id
+    SP_SCENARIOS = SP_SCENARIOS.filter((s) => s.id !== idToDelete);
+    toast("success", `"${nameToDelete}" eliminado.`);
+    scModal = null;
+    scSelected = null;
+    renderScPage();
+  } catch (err) {
+    toast("error", err.message || "Error al eliminar el escenario.");
+  }
 };
 
 window.onScSearch = function (val) {
@@ -721,9 +786,24 @@ window.onScSearch = function (val) {
   renderScPage();
 };
 
-export function initScenarios() {
-  scSearch = "";
-  scModal = null;
+export async function initScenarios() {
+  scSearch  = "";
+  scModal   = null;
   scSelected = null;
+  // Cargamos escenarios Y espacios en paralelo — los espacios los necesitamos
+  // para saber cuáles pertenecen a cada escenario y mostrarlos dentro de la tarjeta
+  try {
+    const [scenarios, spaces] = await Promise.all([getScenarios(), getSpaces()]);
+    SP_SCENARIOS = (scenarios || []).map((sc) => ({ id: sc.id, name: sc.name, location: sc.location || '' }));
+    SP_SPACES    = (spaces    || []).map((sp) => ({
+      id:          sp.id,
+      name:        sp.name,
+      description: sp.description || '',
+      status:      sp.status === 'active' ? 'activo' : sp.status === 'inactive' ? 'inactivo' : 'activo',
+      scenario_id: sp.scenarioId  || sp.scenario_id || '',
+    }));
+  } catch {
+    toast("error", "No se pudieron cargar los datos del servidor.");
+  }
   renderScPage();
 }

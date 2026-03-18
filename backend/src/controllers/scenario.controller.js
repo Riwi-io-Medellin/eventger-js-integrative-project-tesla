@@ -6,11 +6,6 @@ const {getScenariosService, createScenarioService, updateScenarioService,
 const getScenarios= async (req,res,next) =>{
     try{
         const scenarios= await getScenariosService();
-
-        // Verify if there are scenarios
-        if (!scenarios.length){
-            return res.status(404).json({message: "No scenarios found"})
-        }
         res.status(200).json(scenarios)
 
     } catch (error){

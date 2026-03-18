@@ -3,6 +3,7 @@
 import Sidebar from '../components/sidebar.js';
 import Navbar  from '../components/navbar.js';
 import { getSession, getInitials, getRoleName } from '../utils/session.js';
+import { getEventsByUser } from '../services/api.js'; // para cargar los eventos del usuario logueado
 
 if (!document.getElementById('profile-style')) {
   const s = document.createElement('style');
@@ -22,16 +23,8 @@ if (!document.getElementById('profile-style')) {
   document.head.appendChild(s);
 }
 
-// 🔌 estos vendrán del backend cuando conectemos la API
-// scenario = complejo/escenario deportivo; space = el espacio dentro de ese escenario
-const MOCK_EVENTS = [
-  { id:'1', title:'Torneo Interbarrial de Fútbol',  discipline:'Fútbol',      status:'programado', start_date:'2026-03-05', scenario:'Unidad Deportiva Atanasio Girardot',    space:'Estadio Atanasio Girardot',  creator:'Sara Calderón' },
-  { id:'2', title:'Liga de Baloncesto Juvenil',     discipline:'Baloncesto',   status:'activo',     start_date:'2026-03-01', scenario:'Polideportivo Sur',                     space:'Coliseo Iván de Bedout',     creator:'Sara Calderón' },
-  { id:'3', title:'Copa de Voleibol',               discipline:'Voleibol',     status:'activo',     start_date:'2026-02-28', scenario:'Polideportivo Sur',                     space:'Cancha de Voleibol',         creator:'Jose David Henao' },
-  { id:'4', title:'Campeonato de Natación',         discipline:'Natación',     status:'finalizado', start_date:'2026-02-20', scenario:'Complejo Acuático Julio César Noriega', space:'Piscina Olímpica 50m',       creator:'Jose David Henao' },
-  { id:'5', title:'Festival de Atletismo',          discipline:'Atletismo',    status:'programado', start_date:'2026-03-25', scenario:'Unidad Deportiva Atanasio Girardot',    space:'Pista Atlética Principal',   creator:'Ana García' },
-  { id:'6', title:'Copa de Microfútbol',            discipline:'Microfútbol',  status:'activo',     start_date:'2026-03-10', scenario:'Unidad Deportiva María Paz',            space:'Cancha Múltiple Sur',        creator:'Ana García' },
-];
+// Se llena desde el backend en initProfile() con GET /profile/:id
+let MOCK_EVENTS = [];
 
 // colores de los chips según la disciplina
 const DISCIPLINE_COLORS = {
@@ -178,6 +171,25 @@ function render() {
   </div>`;
 }
 
-export default function initProfile() {
+export default async function initProfile() {
+  const session = getSession();
+  try {
+    // Cargamos los eventos creados por este usuario desde GET /profile/:id
+    const events = await getEventsByUser(session?.id);
+    // Convertimos la respuesta del backend al formato que usa render()
+    MOCK_EVENTS = (events || []).map((ev) => ({
+      id:         ev.id,
+      title:      ev.title,
+      discipline: ev.discipline?.name || ev.disciplineName || '—',
+      status:     ev.isActive ? 'activo' : 'finalizado',
+      start_date: ev.startDate  || ev.start_date  || '',
+      scenario:   ev.scenario?.name  || ev.scenarioName  || '—',
+      space:      ev.space?.name     || ev.spaceName     || '—',
+      creator:    ev.creator?.name   || ev.creatorName   || session?.name || '—',
+    }));
+  } catch {
+    // Si falla la carga, la sección de eventos quedará vacía
+    MOCK_EVENTS = [];
+  }
   document.getElementById('app').innerHTML = render();
 }
